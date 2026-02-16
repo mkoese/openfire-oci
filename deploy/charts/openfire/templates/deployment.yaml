@@ -24,9 +24,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: xmpp
-              containerPort: 15222
+              containerPort: 5222
             - name: xmpp-ssl
-              containerPort: 15223
+              containerPort: 5223
             - name: s2s
               containerPort: 5269
             - name: bosh
@@ -34,9 +34,9 @@ spec:
             - name: bosh-ssl
               containerPort: 7443
             - name: admin
-              containerPort: 19090
+              containerPort: 9090
             - name: admin-ssl
-              containerPort: 19091
+              containerPort: 9091
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -45,14 +45,14 @@ spec:
                 - ALL
           livenessProbe:
             tcpSocket:
-              port: 19090
+              port: 9090
             initialDelaySeconds: 60
             periodSeconds: 30
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             tcpSocket:
-              port: 19090
+              port: 9090
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5

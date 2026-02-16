@@ -7,10 +7,11 @@ Wants=network-online.target
 Image=openfire-ubi:5.0.3
 ContainerName=openfire
 
-PublishPort=19090:19090
-PublishPort=19091:19091
-PublishPort=15222:15222
-PublishPort=15223:15223
+# Host:Container port mapping
+PublishPort=19090:9090
+PublishPort=19091:9091
+PublishPort=15222:5222
+PublishPort=15223:5223
 PublishPort=5269:5269
 
 Volume=/var/lib/openfire/conf:/opt/openfire/conf:Z

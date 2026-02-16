@@ -1,12 +1,7 @@
 # ── Stage 1: Extract ─────────────────────────────────────────────────────────
 # Place openfire_5_0_3.tar.gz in build context before building
-FROM registry.access.redhat.com/ubi9/openjdk-17-runtime:1.20 AS builder
+FROM registry.access.redhat.com/ubi9/ubi:9.5 AS builder
 
-LABEL org.opencontainers.image.title="Openfire XMPP Server" \
-      org.opencontainers.image.description="Openfire XMPP server on Red Hat UBI9 OpenJDK 17" \
-      org.opencontainers.image.version="5.0.3" \
-      org.opencontainers.image.vendor="mkoese" \
-      org.opencontainers.image.source="https://gitlab.com/mkoese/openfire-oci"
 ARG OPENFIRE_VERSION_UNDERSCORE=5_0_3
 COPY openfire_${OPENFIRE_VERSION_UNDERSCORE}.tar.gz /tmp/
 RUN tar xzf /tmp/openfire_${OPENFIRE_VERSION_UNDERSCORE}.tar.gz -C /opt/ \
@@ -14,6 +9,12 @@ RUN tar xzf /tmp/openfire_${OPENFIRE_VERSION_UNDERSCORE}.tar.gz -C /opt/ \
 
 # ── Stage 2: Runtime ─────────────────────────────────────────────────────────
 FROM registry.access.redhat.com/ubi9/openjdk-17-runtime:1.20
+
+LABEL org.opencontainers.image.title="Openfire XMPP Server" \
+      org.opencontainers.image.description="Openfire XMPP server on Red Hat UBI9 OpenJDK 17" \
+      org.opencontainers.image.version="5.0.3" \
+      org.opencontainers.image.vendor="mkoese" \
+      org.opencontainers.image.source="https://gitlab.com/mkoese/openfire-oci"
 
 ENV OPENFIRE_HOME=/opt/openfire
 
@@ -32,7 +33,8 @@ VOLUME ["${OPENFIRE_HOME}/conf", \
         "${OPENFIRE_HOME}/plugins", \
         "${OPENFIRE_HOME}/resources/security"]
 
-EXPOSE 15222 15223 5269 7070 7443 19090 19091
+# Standard Openfire ports (use port mapping to expose on different host ports)
+EXPOSE 5222 5223 5269 7070 7443 9090 9091
 
 USER 1001
 WORKDIR ${OPENFIRE_HOME}

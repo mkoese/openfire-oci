@@ -8,13 +8,13 @@ replicaCount: 1
 service:
   type: ClusterIP
   ports:
-    xmpp: 15222
-    xmppSsl: 15223
+    xmpp: 5222
+    xmppSsl: 5223
     s2s: 5269
     bosh: 7070
     boshSsl: 7443
-    admin: 19090
-    adminSsl: 19091
+    admin: 9090
+    adminSsl: 9091
 
 route:
   enabled: false

@@ -9,3 +9,7 @@ openfire_*.tar.gz
 
 # OS
 .DS_Store
+
+# Openfire auto-generated config (don't commit)
+deploy/quadlet/conf/available-plugins.xml
+deploy/quadlet/conf/server-update.xml

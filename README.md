@@ -4,15 +4,17 @@ Openfire XMPP server on Red Hat UBI9 OpenJDK 17.
 
 ## Ports
 
-| Port  | Protocol | Description              |
-|-------|----------|--------------------------|
-| 15222 | TCP      | XMPP client connections  |
-| 15223 | TCP      | XMPP client (legacy SSL) |
-| 5269  | TCP      | XMPP server-to-server    |
-| 7070  | TCP      | HTTP binding (BOSH)      |
-| 7443  | TCP      | HTTPS binding (BOSH)     |
-| 19090 | TCP      | Admin console (HTTP)     |
-| 19091 | TCP      | Admin console (HTTPS)    |
+Container uses standard Openfire ports. Use port mapping for custom host ports.
+
+| Container | Host (example) | Description              |
+|-----------|----------------|--------------------------|
+| 5222      | 15222          | XMPP client connections  |
+| 5223      | 15223          | XMPP client (legacy SSL) |
+| 5269      | 5269           | XMPP server-to-server    |
+| 7070      | 7070           | HTTP binding (BOSH)      |
+| 7443      | 7443           | HTTPS binding (BOSH)     |
+| 9090      | 19090          | Admin console (HTTP)     |
+| 9091      | 19091          | Admin console (HTTPS)    |
 
 ---
 
@@ -33,9 +35,10 @@ podman build --platform linux/amd64 -t openfire-ubi:5.0.3 .
 
 ```bash
 podman run -d --name openfire \
-  -p 19090:19090 \
-  -p 19091:19091 \
-  -p 15222:15222 \
+  -p 19090:9090 \
+  -p 19091:9091 \
+  -p 15222:5222 \
+  -p 15223:5223 \
   -v $(pwd)/deploy/quadlet/conf:/opt/openfire/conf:Z \
   openfire-ubi:5.0.3
 ```
