@@ -1,0 +1,52 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-openfire
+  labels:
+    app: openfire
+spec:
+  podSelector:
+    matchLabels:
+      app: openfire
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow XMPP client connections
+    - ports:
+        - protocol: TCP
+          port: 15222
+        - protocol: TCP
+          port: 15223
+    # Allow XMPP server-to-server
+    - ports:
+        - protocol: TCP
+          port: 5269
+    # Allow BOSH/WebSocket connections
+    - ports:
+        - protocol: TCP
+          port: 7070
+        - protocol: TCP
+          port: 7443
+    # Allow admin console (restrict to specific namespaces in production)
+    - ports:
+        - protocol: TCP
+          port: 19090
+        - protocol: TCP
+          port: 19091
+  egress:
+    # Allow DNS
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow database connections (PostgreSQL)
+    - ports:
+        - protocol: TCP
+          port: 5432
+    # Allow XMPP server-to-server federation
+    - ports:
+        - protocol: TCP
+          port: 5269

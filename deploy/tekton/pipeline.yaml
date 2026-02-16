@@ -1,0 +1,71 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: openfire-build
+spec:
+  params:
+    - name: git-url
+      type: string
+      default: https://gitlab.com/mkoese/openfire-oci.git
+    - name: git-revision
+      type: string
+      default: main
+    - name: image-name
+      type: string
+      default: image-registry.openshift-image-registry.svc:5000/openfire/openfire-ubi
+    - name: image-tag
+      type: string
+      default: "5.0.3"
+  workspaces:
+    - name: shared-workspace
+    - name: dockerconfig
+  tasks:
+    - name: fetch-source
+      taskRef:
+        name: git-clone
+        kind: ClusterTask
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+
+    - name: download-openfire
+      runAfter:
+        - fetch-source
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+      taskSpec:
+        workspaces:
+          - name: source
+        steps:
+          - name: download
+            image: registry.access.redhat.com/ubi9/ubi-minimal:9.5
+            script: |
+              #!/bin/bash
+              cd $(workspaces.source.path)
+              curl -fsSL -o openfire_5_0_3.tar.gz \
+                https://github.com/igniterealtime/Openfire/releases/download/v5.0.3/openfire_5_0_3.tar.gz
+
+    - name: build-image
+      runAfter:
+        - download-openfire
+      taskRef:
+        name: buildah
+        kind: ClusterTask
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: dockerconfig
+          workspace: dockerconfig
+      params:
+        - name: IMAGE
+          value: $(params.image-name):$(params.image-tag)
+        - name: DOCKERFILE
+          value: ./Containerfile
+        - name: TLSVERIFY
+          value: "false"

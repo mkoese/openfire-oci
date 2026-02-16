@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-openfire
+  labels:
+    app: openfire
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: openfire
+  template:
+    metadata:
+      labels:
+        app: openfire
+    spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 0
+        fsGroup: 0
+      containers:
+        - name: openfire
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: xmpp
+              containerPort: 15222
+            - name: xmpp-ssl
+              containerPort: 15223
+            - name: s2s
+              containerPort: 5269
+            - name: bosh
+              containerPort: 7070
+            - name: bosh-ssl
+              containerPort: 7443
+            - name: admin
+              containerPort: 19090
+            - name: admin-ssl
+              containerPort: 19091
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            tcpSocket:
+              port: 19090
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 19090
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: openfire-conf
+              mountPath: /opt/openfire/conf
+            - name: openfire-data
+              mountPath: /opt/openfire/embedded-db
+            - name: openfire-plugins
+              mountPath: /opt/openfire/plugins
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: openfire-conf
+          secret:
+            secretName: {{ .Release.Name }}-openfire-conf
+        - name: openfire-data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-openfire-data
+        - name: openfire-plugins
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-openfire-plugins

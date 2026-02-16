@@ -1,0 +1,11 @@
+# Build artifacts
+openfire_*.tar.gz
+*.tar
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store

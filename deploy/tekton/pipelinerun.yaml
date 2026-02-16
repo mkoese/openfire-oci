@@ -1,0 +1,28 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: openfire-build-
+spec:
+  pipelineRef:
+    name: openfire-build
+  params:
+    - name: git-url
+      value: https://gitlab.com/mkoese/openfire-oci.git
+    - name: git-revision
+      value: main
+    - name: image-name
+      value: image-registry.openshift-image-registry.svc:5000/openfire/openfire-ubi
+    - name: image-tag
+      value: "5.0.3"
+  workspaces:
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    - name: dockerconfig
+      secret:
+        secretName: openfire-registry-credentials
