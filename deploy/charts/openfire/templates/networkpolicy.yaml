@@ -15,9 +15,9 @@ spec:
     # Allow XMPP client connections
     - ports:
         - protocol: TCP
-          port: 15222
+          port: 5222
         - protocol: TCP
-          port: 15223
+          port: 5223
     # Allow XMPP server-to-server
     - ports:
         - protocol: TCP
@@ -31,9 +31,9 @@ spec:
     # Allow admin console (restrict to specific namespaces in production)
     - ports:
         - protocol: TCP
-          port: 19090
+          port: 9090
         - protocol: TCP
-          port: 19091
+          port: 9091
   egress:
     # Allow DNS
     - to: []

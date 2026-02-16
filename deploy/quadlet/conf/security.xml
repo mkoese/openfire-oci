@@ -40,7 +40,8 @@
         <old></old>
         <new></new>
        -->  
-      <current>CFTPgE/bk8NsniE34+OAoA==</current> 
+      <!-- Openfire will generate a unique key on first startup -->
+      <current></current> 
     </key>  
     <property> 
       <!-- 

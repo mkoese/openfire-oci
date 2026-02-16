@@ -9,10 +9,10 @@ spec:
   ports:
     - name: xmpp
       port: {{ .Values.service.ports.xmpp }}
-      targetPort: 15222
+      targetPort: 5222
     - name: xmpp-ssl
       port: {{ .Values.service.ports.xmppSsl }}
-      targetPort: 15223
+      targetPort: 5223
     - name: s2s
       port: {{ .Values.service.ports.s2s }}
       targetPort: 5269
@@ -24,9 +24,9 @@ spec:
       targetPort: 7443
     - name: admin
       port: {{ .Values.service.ports.admin }}
-      targetPort: 19090
+      targetPort: 9090
     - name: admin-ssl
       port: {{ .Values.service.ports.adminSsl }}
-      targetPort: 19091
+      targetPort: 9091
   selector:
     app: openfire
