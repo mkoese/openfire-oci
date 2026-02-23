@@ -13,15 +13,19 @@ Open http://localhost:9090 and log in with `admin` / `admin`. No setup wizard �
 
 ## 📦 Ports
 
-| Container | Host (example) | Description              |
-|-----------|----------------|--------------------------|
-| 5222      | 15222          | XMPP client              |
-| 5223      | 15223          | XMPP client (legacy SSL) |
-| 5269      | 5269           | Server-to-server         |
-| 7070      | 7070           | HTTP binding (BOSH)      |
-| 7443      | 7443           | HTTPS binding (BOSH)     |
-| 9090      | 19090          | Admin console (HTTP)     |
-| 9091      | 19091          | Admin console (HTTPS)    |
+| Container | Host (example) | Description                       |
+|-----------|----------------|-----------------------------------|
+| 5222      | 15222          | XMPP client (STARTTLS)            |
+| 5223      | 15223          | XMPP client (Direct TLS)          |
+| 5269      | 5269           | Server-to-server (STARTTLS)       |
+| 5270      | 5270           | Server-to-server (Direct TLS)     |
+| 5275      | 5275           | External components (STARTTLS)    |
+| 5276      | 5276           | External components (Direct TLS)  |
+| 7070      | 7070           | Web binding (BOSH/WebSocket)      |
+| 7443      | 7443           | Web binding (BOSH/WebSocket, TLS) |
+| 7777      | 7777           | File transfer proxy               |
+| 9090      | 19090          | Admin console (HTTP)              |
+| 9091      | 19091          | Admin console (HTTPS)             |
 
 ## ⚙️ Configuration
 
@@ -52,6 +56,20 @@ Config lives in a Secret. An initContainer copies it to a writable `emptyDir` be
 oc rollout restart deployment/<release>-openfire
 ```
 
+## Plugins
+
+Plugins can be baked into the image at build time. Download `.jar` files into the `plugins/` directory before building:
+
+```bash
+# Example: User Status plugin
+curl -fsSL -o plugins/userstatus.jar \
+  https://igniterealtime.org/projects/openfire/plugins/1.3.0/userstatus.jar
+```
+
+Any `.jar` files in `plugins/` are copied into the image during build. If the directory is empty, the build still succeeds. Plugin jars are git-ignored so they won't be committed.
+
+Browse available plugins at https://www.igniterealtime.org/projects/openfire/plugins.jsp.
+
 ## 🛠️ Build
 
 ```bash
@@ -69,7 +87,7 @@ podman build --platform linux/amd64 \
   -t openfire-ubi:5.1.0 .
 ```
 
-### 🔒 Air-Gapped Build
+### 🔒 Air-Gapped
 
 ```bash
 # On connected machine
@@ -80,9 +98,14 @@ curl -fsSL -o openfire_5_0_3.tar.gz \
 
 # Transfer files to air-gapped machine
 
-# On air-gapped machine
+# On air-gapped machine — build
 podman load -i ubi9-openjdk-17-runtime.tar
 podman build --platform linux/amd64 -t openfire-ubi:5.0.3 .
+
+# Push built image to an internal registry
+podman save -o openfire-ubi-5.0.3.tar openfire-ubi:5.0.3
+skopeo copy docker-archive:openfire-ubi-5.0.3.tar \
+  docker://internal-registry.local/openfire-ubi:5.0.3
 ```
 
 ## 🖥️ Deploy
@@ -142,14 +165,6 @@ helm template openfire-build ./deploy/charts/openfire-build | oc apply -f -
 # Trigger build
 helm template openfire-build ./deploy/charts/openfire-build \
   --set pipelineRun.enabled=true | oc apply -f -
-```
-
-### Air-Gapped Image Transfer
-
-```bash
-podman save -o openfire-ubi-5.0.3.tar openfire-ubi:5.0.3
-skopeo copy docker-archive:openfire-ubi-5.0.3.tar \
-  docker://internal-registry.local/openfire-ubi:5.0.3
 ```
 
 ## 📄 License

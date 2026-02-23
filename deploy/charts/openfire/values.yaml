@@ -11,8 +11,12 @@ service:
     xmpp: 5222
     xmppSsl: 5223
     s2s: 5269
+    s2sSsl: 5270
+    component: 5275
+    componentSsl: 5276
     bosh: 7070
     boshSsl: 7443
+    fileTransfer: 7777
     admin: 9090
     adminSsl: 9091
 

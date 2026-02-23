@@ -22,12 +22,24 @@ spec:
     - ports:
         - protocol: TCP
           port: 5269
+        - protocol: TCP
+          port: 5270
+    # Allow external components
+    - ports:
+        - protocol: TCP
+          port: 5275
+        - protocol: TCP
+          port: 5276
     # Allow BOSH/WebSocket connections
     - ports:
         - protocol: TCP
           port: 7070
         - protocol: TCP
           port: 7443
+    # Allow file transfer proxy
+    - ports:
+        - protocol: TCP
+          port: 7777
     # Allow admin console (restrict to specific namespaces in production)
     - ports:
         - protocol: TCP
@@ -50,3 +62,5 @@ spec:
     - ports:
         - protocol: TCP
           port: 5269
+        - protocol: TCP
+          port: 5270

@@ -39,10 +39,18 @@ spec:
               containerPort: 5223
             - name: s2s
               containerPort: 5269
+            - name: s2s-ssl
+              containerPort: 5270
+            - name: component
+              containerPort: 5275
+            - name: component-ssl
+              containerPort: 5276
             - name: bosh
               containerPort: 7070
             - name: bosh-ssl
               containerPort: 7443
+            - name: filetransfer
+              containerPort: 7777
             - name: admin
               containerPort: 9090
             - name: admin-ssl

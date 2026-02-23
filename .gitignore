@@ -2,6 +2,9 @@
 openfire_*.tar.gz
 *.tar
 
+# Plugin jars (download before building, not committed)
+plugins/*.jar
+
 # IDE
 .idea/
 .vscode/

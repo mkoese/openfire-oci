@@ -46,6 +46,12 @@ COPY conf/openfire.xml ${OPENFIRE_HOME}/conf/openfire.xml
 
 # Non-root: UID 1001, GID 0 for OpenShift arbitrary UID
 USER root
+
+# Pre-install plugins (download .jar files into plugins/ before building)
+COPY plugins/ /tmp/plugins/
+RUN cp /tmp/plugins/*.jar ${OPENFIRE_HOME}/plugins/ 2>/dev/null || true \
+    && rm -rf /tmp/plugins
+
 RUN chown -R 1001:0 ${OPENFIRE_HOME} \
     && chmod -R g=u ${OPENFIRE_HOME}
 
@@ -55,7 +61,7 @@ VOLUME ["${OPENFIRE_HOME}/conf", \
         "${OPENFIRE_HOME}/resources/security"]
 
 # Standard Openfire ports (use port mapping to expose on different host ports)
-EXPOSE 5222 5223 5269 7070 7443 9090 9091
+EXPOSE 5222 5223 5269 5270 5275 5276 7070 7443 7777 9090 9091
 
 USER 1001
 WORKDIR ${OPENFIRE_HOME}

@@ -16,12 +16,24 @@ spec:
     - name: s2s
       port: {{ .Values.service.ports.s2s }}
       targetPort: 5269
+    - name: s2s-ssl
+      port: {{ .Values.service.ports.s2sSsl }}
+      targetPort: 5270
+    - name: component
+      port: {{ .Values.service.ports.component }}
+      targetPort: 5275
+    - name: component-ssl
+      port: {{ .Values.service.ports.componentSsl }}
+      targetPort: 5276
     - name: bosh
       port: {{ .Values.service.ports.bosh }}
       targetPort: 7070
     - name: bosh-ssl
       port: {{ .Values.service.ports.boshSsl }}
       targetPort: 7443
+    - name: filetransfer
+      port: {{ .Values.service.ports.fileTransfer }}
+      targetPort: 7777
     - name: admin
       port: {{ .Values.service.ports.admin }}
       targetPort: 9090
