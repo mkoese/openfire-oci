@@ -1,3 +1,4 @@
+{{- if .Values.pipelineRun.enabled }}
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
@@ -7,13 +8,13 @@ spec:
     name: openfire-build
   params:
     - name: git-url
-      value: https://gitlab.com/mkoese/openfire-oci.git
+      value: {{ .Values.git.url | quote }}
     - name: git-revision
-      value: main
+      value: {{ .Values.git.revision | quote }}
     - name: image-name
-      value: image-registry.openshift-image-registry.svc:5000/openfire/openfire-ubi
+      value: {{ .Values.image.name | quote }}
     - name: image-tag
-      value: "5.0.3"
+      value: {{ .Values.image.tag | quote }}
   workspaces:
     - name: shared-workspace
       volumeClaimTemplate:
@@ -22,7 +23,8 @@ spec:
             - ReadWriteOnce
           resources:
             requests:
-              storage: 1Gi
+              storage: {{ .Values.workspace.storageSize }}
     - name: dockerconfig
       secret:
-        secretName: openfire-registry-credentials
+        secretName: {{ .Values.registry.secretName }}
+{{- end }}

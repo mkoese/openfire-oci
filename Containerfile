@@ -1,18 +1,36 @@
 # ── Stage 1: Extract ─────────────────────────────────────────────────────────
-# Place openfire_5_0_3.tar.gz in build context before building
+# Place openfire_<VERSION_FILE>.tar.gz in build context before building.
+# Override version at build time:
+#   --build-arg OPENFIRE_VERSION=5.1.0 --build-arg OPENFIRE_VERSION_FILE=5_1_0
 FROM registry.access.redhat.com/ubi9/ubi:9.5 AS builder
 
-ARG OPENFIRE_VERSION_UNDERSCORE=5_0_3
-COPY openfire_${OPENFIRE_VERSION_UNDERSCORE}.tar.gz /tmp/
-RUN tar xzf /tmp/openfire_${OPENFIRE_VERSION_UNDERSCORE}.tar.gz -C /opt/ \
+ARG OPENFIRE_VERSION=5.0.3
+ARG OPENFIRE_VERSION_FILE=5_0_3
+
+# Fail early with a helpful message if the archive is missing
+RUN --mount=type=bind,target=/ctx \
+    test -f /ctx/openfire_${OPENFIRE_VERSION_FILE}.tar.gz || { \
+      echo ""; \
+      echo "ERROR: openfire_${OPENFIRE_VERSION_FILE}.tar.gz not found in build context."; \
+      echo "       Download it first:"; \
+      echo "       curl -fsSL -o openfire_${OPENFIRE_VERSION_FILE}.tar.gz \\"; \
+      echo "         https://github.com/igniterealtime/Openfire/releases/download/v${OPENFIRE_VERSION}/openfire_${OPENFIRE_VERSION_FILE}.tar.gz"; \
+      echo ""; \
+      exit 1; \
+    }
+
+COPY openfire_${OPENFIRE_VERSION_FILE}.tar.gz /tmp/
+RUN tar xzf /tmp/openfire_${OPENFIRE_VERSION_FILE}.tar.gz -C /opt/ \
     && rm -rf /opt/openfire/jre /opt/openfire/documentation
 
 # ── Stage 2: Runtime ─────────────────────────────────────────────────────────
 FROM registry.access.redhat.com/ubi9/openjdk-17-runtime:1.20
 
+ARG OPENFIRE_VERSION=5.0.3
+
 LABEL org.opencontainers.image.title="Openfire XMPP Server" \
       org.opencontainers.image.description="Openfire XMPP server on Red Hat UBI9 OpenJDK 17" \
-      org.opencontainers.image.version="5.0.3" \
+      org.opencontainers.image.version="${OPENFIRE_VERSION}" \
       org.opencontainers.image.vendor="mkoese" \
       org.opencontainers.image.source="https://gitlab.com/mkoese/openfire-oci"
 
@@ -22,6 +40,9 @@ COPY --from=builder /opt/openfire ${OPENFIRE_HOME}
 
 # Override log4j2.xml so ALL logs go to stdout (not just plugin messages)
 COPY log4j2-container.xml ${OPENFIRE_HOME}/lib/log4j2.xml
+
+# Default config with autosetup (override via volume mount for production)
+COPY conf/openfire.xml ${OPENFIRE_HOME}/conf/openfire.xml
 
 # Non-root: UID 1001, GID 0 for OpenShift arbitrary UID
 USER root

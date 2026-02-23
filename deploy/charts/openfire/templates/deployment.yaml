@@ -18,6 +18,16 @@ spec:
         runAsUser: 1001
         runAsGroup: 0
         fsGroup: 0
+      initContainers:
+        - name: init-conf
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ['sh', '-c', 'cp /conf-secret/* /conf/']
+          volumeMounts:
+            - name: openfire-conf-secret
+              mountPath: /conf-secret
+              readOnly: true
+            - name: openfire-conf
+              mountPath: /conf
       containers:
         - name: openfire
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -39,20 +49,22 @@ spec:
               containerPort: 9091
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
           livenessProbe:
-            tcpSocket:
-              port: 9090
+            httpGet:
+              path: /login.jsp
+              port: admin
             initialDelaySeconds: 60
             periodSeconds: 30
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
-            tcpSocket:
-              port: 9090
+            httpGet:
+              path: /login.jsp
+              port: admin
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
@@ -64,15 +76,25 @@ spec:
               mountPath: /opt/openfire/embedded-db
             - name: openfire-plugins
               mountPath: /opt/openfire/plugins
+            - name: openfire-security
+              mountPath: /opt/openfire/resources/security
+            - name: tmp
+              mountPath: /tmp
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: openfire-conf
+        - name: openfire-conf-secret
           secret:
             secretName: {{ .Release.Name }}-openfire-conf
+        - name: openfire-conf
+          emptyDir: {}
         - name: openfire-data
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-openfire-data
         - name: openfire-plugins
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-openfire-plugins
+        - name: openfire-security
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

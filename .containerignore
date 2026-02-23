@@ -1,0 +1,8 @@
+.git
+.gitignore
+.containerignore
+.idea
+.vscode
+README.md
+LICENSE
+deploy/

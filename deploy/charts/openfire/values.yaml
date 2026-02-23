@@ -21,6 +21,7 @@ route:
   host: openfire.apps.example.com
 
 persistence:
+  storageClassName: ""
   data:
     size: 1Gi
   plugins:

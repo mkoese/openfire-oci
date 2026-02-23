@@ -6,16 +6,16 @@ spec:
   params:
     - name: git-url
       type: string
-      default: https://gitlab.com/mkoese/openfire-oci.git
+      default: {{ .Values.git.url | quote }}
     - name: git-revision
       type: string
-      default: main
+      default: {{ .Values.git.revision | quote }}
     - name: image-name
       type: string
-      default: image-registry.openshift-image-registry.svc:5000/openfire/openfire-ubi
+      default: {{ .Values.image.name | quote }}
     - name: image-tag
       type: string
-      default: "5.0.3"
+      default: {{ .Values.image.tag | quote }}
   workspaces:
     - name: shared-workspace
     - name: dockerconfig
@@ -48,8 +48,8 @@ spec:
             script: |
               #!/bin/bash
               cd $(workspaces.source.path)
-              curl -fsSL -o openfire_5_0_3.tar.gz \
-                https://github.com/igniterealtime/Openfire/releases/download/v5.0.3/openfire_5_0_3.tar.gz
+              curl -fsSL -o openfire_{{ .Values.openfire.version | replace "." "_" }}.tar.gz \
+                {{ .Values.openfire.downloadUrl }}
 
     - name: build-image
       runAfter:

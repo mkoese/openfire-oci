@@ -1,0 +1,21 @@
+git:
+  url: https://gitlab.com/mkoese/openfire-oci.git
+  revision: main
+
+image:
+  name: image-registry.openshift-image-registry.svc:5000/openfire/openfire-ubi
+  tag: "5.0.3"
+
+openfire:
+  version: "5.0.3"
+  downloadUrl: https://github.com/igniterealtime/Openfire/releases/download/v5.0.3/openfire_5_0_3.tar.gz
+
+workspace:
+  storageSize: 1Gi
+
+registry:
+  secretName: openfire-registry-credentials
+
+pipelineRun:
+  # Set to true to create a PipelineRun (triggers an immediate build)
+  enabled: false
