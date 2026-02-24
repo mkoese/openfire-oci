@@ -39,10 +39,6 @@ spec:
       port: {{ .Values.service.ports.componentSsl }}
       targetPort: {{ .Values.service.ports.componentSsl }}
       protocol: TCP
-    - name: bosh-ssl
-      port: {{ .Values.service.ports.boshSsl }}
-      targetPort: {{ .Values.service.ports.boshSsl }}
-      protocol: TCP
     - name: filetransfer
       port: {{ .Values.service.ports.fileTransfer }}
       targetPort: {{ .Values.service.ports.fileTransfer }}
