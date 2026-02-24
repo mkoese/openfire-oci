@@ -45,6 +45,7 @@ spec:
       initContainers:
         - name: init-conf
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
