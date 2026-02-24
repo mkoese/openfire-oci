@@ -21,15 +21,34 @@ spec:
       labels:
         app: openfire
     spec:
+      serviceAccountName: {{ .Release.Name }}-openfire
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: openfire
+              topologyKey: kubernetes.io/hostname
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: openfire
+                topologyKey: topology.kubernetes.io/zone
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: postgresql
+                topologyKey: kubernetes.io/hostname
       securityContext:
         runAsNonRoot: true
       initContainers:
         - name: init-conf
-          {{- if .Values.image.trigger.enabled }}
-          image: "image-registry.openshift-image-registry.svc:5000/{{ .Values.image.trigger.sourceNamespace }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          {{- end }}
           command:
             - sh
             - -c
@@ -53,11 +72,7 @@ spec:
               mountPath: /security
       containers:
         - name: openfire
-          {{- if .Values.image.trigger.enabled }}
-          image: "image-registry.openshift-image-registry.svc:5000/{{ .Values.image.trigger.sourceNamespace }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: xmpp

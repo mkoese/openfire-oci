@@ -13,49 +13,66 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Allow XMPP client connections
-    - ports:
+    # Allow XMPP client connections (same namespace only)
+    - from:
+        - podSelector: {}
+      ports:
         - protocol: TCP
           port: 5222
         - protocol: TCP
           port: 5223
-    # Allow XMPP server-to-server
-    - ports:
+    # Allow XMPP server-to-server (same namespace only)
+    - from:
+        - podSelector: {}
+      ports:
         - protocol: TCP
           port: 5269
         - protocol: TCP
           port: 5270
-    # Allow external components
-    - ports:
+    # Allow external components (same namespace only)
+    - from:
+        - podSelector: {}
+      ports:
         - protocol: TCP
           port: 5275
         - protocol: TCP
           port: 5276
-    # Allow BOSH/WebSocket connections
-    - ports:
+    # Allow BOSH/WebSocket (same namespace + OpenShift router)
+    - from:
+        - podSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: ingress
+      ports:
         - protocol: TCP
           port: 7070
         - protocol: TCP
           port: 7443
-    # Allow file transfer proxy
-    - ports:
+    # Allow file transfer proxy (same namespace only)
+    - from:
+        - podSelector: {}
+      ports:
         - protocol: TCP
           port: 7777
-    # Allow admin console (restrict to specific namespaces in production)
-    - ports:
+    # Allow admin console (same namespace + OpenShift router)
+    - from:
+        - podSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: ingress
+      ports:
         - protocol: TCP
           port: 9090
         - protocol: TCP
           port: 9091
   egress:
     # Allow DNS
-    - to: []
-      ports:
+    - ports:
         - protocol: UDP
           port: 53
         - protocol: TCP
           port: 53
-    # Allow HTTPS (updates, plugin downloads)
+    # Allow HTTPS (plugin downloads, updates)
     - ports:
         - protocol: TCP
           port: 443
