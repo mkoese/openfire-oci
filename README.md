@@ -2,6 +2,14 @@
 
 Openfire XMPP server on Red Hat UBI9 OpenJDK 17.
 
+| Metric | Value |
+|--------|-------|
+| Image size | ~478 MB |
+| Efficiency | 89% |
+| Wasted space | ~90 MB |
+
+The base image (`ubi9/openjdk-17-runtime`) accounts for most of the size. The Openfire layer adds a single `COPY` from the multi-stage builder. This is the practical minimum for a UBI9 + OpenJDK 17 runtime -- further reduction would require switching to a distroless or Alpine base.
+
 ## Ports
 
 | Port | Description                       |
