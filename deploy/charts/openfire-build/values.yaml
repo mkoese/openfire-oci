@@ -3,11 +3,11 @@ namespace:
   create: true
 
 git:
-  url: https://gitlab.com/mkoese/openfire-oci.git
+  url: https://github.com/mkoese/openfire-oci.git
   revision: main
 
 image:
-  name: image-registry.openshift-image-registry.svc:5000/openfire/openfire-oci
+  name: image-registry.openshift-image-registry.svc:5000/openfire-build/openfire-oci
   tag: "5.0.3"
 
 openfire:

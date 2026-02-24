@@ -139,32 +139,53 @@ sudo firewall-cmd --reload
 
 Logs: `journalctl -u openfire.service -f`
 
-### OpenShift + Helm
+### OpenShift
+
+#### 1. Build pipeline (Tekton)
 
 ```bash
-# Deploy
-helm template openfire ./deploy/charts/openfire | oc apply -f -
-
-# Custom registry
-helm template openfire ./deploy/charts/openfire \
-  --set image.repository=image-registry.openshift-image-registry.svc:5000/openfire/openfire-oci \
-  | oc apply -f -
-```
-
-### Tekton Pipeline
-
-```bash
-# Registry credentials
-oc create secret generic openfire-registry-credentials \
-  --from-file=.dockerconfigjson=$HOME/.docker/config.json \
-  --type=kubernetes.io/dockerconfigjson -n openfire
-
-# Apply pipeline
+# Apply namespace, ImageStream, and Pipeline
 helm template openfire-build ./deploy/charts/openfire-build | oc apply -f -
 
-# Trigger build
+# Create registry credentials for pushing to the internal registry
+oc create secret docker-registry openfire-registry-credentials \
+  --docker-server=image-registry.openshift-image-registry.svc:5000 \
+  --docker-username=$(oc whoami) \
+  --docker-password=$(oc whoami -t) \
+  -n openfire-build
+
+# Trigger a build (uses oc create because of generateName)
 helm template openfire-build ./deploy/charts/openfire-build \
-  --set pipelineRun.enabled=true | oc apply -f -
+  --set pipelineRun.enabled=true \
+  --show-only templates/pipelinerun.yaml | oc create -f -
+```
+
+#### 2. Deploy Openfire
+
+```bash
+# Allow openfire namespace to pull images from openfire-build
+oc policy add-role-to-group system:image-puller \
+  system:serviceaccounts:openfire -n openfire-build
+
+# Deploy with OpenShift values (internal registry image, Route enabled)
+helm template openfire ./deploy/charts/openfire \
+  -f ./deploy/charts/openfire/values-openshift.yaml | oc apply -f -
+```
+
+#### 3. Manage
+
+```bash
+# Check status
+oc get pods -n openfire
+oc get route -n openfire
+
+# Restart after config changes
+oc rollout restart deployment/openfire-openfire -n openfire
+
+# Re-trigger a build
+helm template openfire-build ./deploy/charts/openfire-build \
+  --set pipelineRun.enabled=true \
+  --show-only templates/pipelinerun.yaml | oc create -f -
 ```
 
 ## 📄 License

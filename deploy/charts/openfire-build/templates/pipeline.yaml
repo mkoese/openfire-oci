@@ -35,9 +35,9 @@ spec:
         - name: output
           workspace: shared-workspace
       params:
-        - name: url
+        - name: URL
           value: $(params.git-url)
-        - name: revision
+        - name: REVISION
           value: $(params.git-revision)
 
     - name: download-openfire
@@ -80,5 +80,5 @@ spec:
           value: $(params.image-name):$(params.image-tag)
         - name: DOCKERFILE
           value: ./Containerfile
-        - name: TLSVERIFY
+        - name: TLS_VERIFY
           value: "false"

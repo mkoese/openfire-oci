@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ .Release.Name }}-openfire
+  namespace: {{ .Values.namespace.name }}
   labels:
     app: openfire
 spec:

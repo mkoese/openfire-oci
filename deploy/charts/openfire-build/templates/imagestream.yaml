@@ -1,0 +1,7 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: openfire-oci
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: openfire-build

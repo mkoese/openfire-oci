@@ -39,7 +39,7 @@ RUN tar xzf /tmp/openfire_${OPENFIRE_VERSION_FILE}.tar.gz -C /opt/ \
     && cp /tmp/log4j2-container.xml /opt/openfire/lib/log4j2.xml \
     && cp /tmp/openfire.xml /opt/openfire/conf/openfire.xml \
     && cp /tmp/plugins/*.jar /opt/openfire/plugins/ 2>/dev/null; \
-    rm -rf /tmp/*
+    chmod 775 /opt/openfire && rm -rf /tmp/*
 
 # ── Stage 2: Runtime ─────────────────────────────────────────────────────────
 # Minimal runtime image. Only one filesystem layer is added on top of the base
@@ -72,6 +72,10 @@ VOLUME ["${OPENFIRE_HOME}/conf", \
 # XMPP client (5222/5223), S2S federation (5269/5270), component (5275/5276),
 # BOSH/WebSocket (7070/7443), file transfer proxy (7777), admin console (9090/9091)
 EXPOSE 5222 5223 5269 5270 5275 5276 7070 7443 7777 9090 9091
+
+# Aligned with K8s liveness/readiness probes in deployment.yaml
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD curl -sf http://localhost:9090/login.jsp || exit 1
 
 # Run as non-root
 USER 1001

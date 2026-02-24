@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}-openfire
+  namespace: {{ .Values.namespace.name }}
   labels:
     app: openfire
 spec:
@@ -15,19 +16,34 @@ spec:
         app: openfire
     spec:
       securityContext:
-        runAsUser: 1001
-        runAsGroup: 0
-        fsGroup: 0
+        runAsNonRoot: true
       initContainers:
         - name: init-conf
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          command: ['sh', '-c', 'cp /conf-secret/* /conf/']
+          command:
+            - sh
+            - -c
+            - |
+              rm -rf /plugins/lost+found /data/lost+found
+              if [ ! -f /plugins/.initialized ]; then
+                cp -r /opt/openfire/plugins/* /plugins/ 2>/dev/null || true
+                touch /plugins/.initialized
+              fi
+              cp -rn /opt/openfire/conf/* /conf/ 2>/dev/null || true
+              cp /conf-secret/* /conf/
+              cp -rn /opt/openfire/resources/security/* /security/ 2>/dev/null || true
           volumeMounts:
             - name: openfire-conf-secret
               mountPath: /conf-secret
               readOnly: true
             - name: openfire-conf
               mountPath: /conf
+            - name: openfire-plugins
+              mountPath: /plugins
+            - name: openfire-data
+              mountPath: /data
+            - name: openfire-security
+              mountPath: /security
       containers:
         - name: openfire
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -57,7 +73,6 @@ spec:
               containerPort: 9091
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL

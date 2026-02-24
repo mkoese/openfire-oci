@@ -3,6 +3,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: {{ .Release.Name }}-openfire-admin
+  namespace: {{ .Values.namespace.name }}
   labels:
     app: openfire
 spec:

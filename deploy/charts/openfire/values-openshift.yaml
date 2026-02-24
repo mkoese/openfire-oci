@@ -1,0 +1,8 @@
+image:
+  repository: image-registry.openshift-image-registry.svc:5000/openfire-build/openfire-oci
+  tag: "5.0.3"
+  pullPolicy: Always
+
+route:
+  enabled: true
+  host: openfire.apps.example.com
