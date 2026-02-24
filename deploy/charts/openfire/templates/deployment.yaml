@@ -83,11 +83,13 @@ spec:
         - name: openfire
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if .Values.javaOpts }}
           env:
+            - name: TZ
+              value: {{ .Values.timezone | default "UTC" | quote }}
+            {{- if .Values.javaOpts }}
             - name: JAVA_OPTS
               value: {{ .Values.javaOpts | join " " | quote }}
-          {{- end }}
+            {{- end }}
           ports:
             - name: xmpp
               containerPort: 5222
