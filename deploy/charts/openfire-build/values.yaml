@@ -1,3 +1,7 @@
+namespace:
+  name: openfire-build
+  create: true
+
 git:
   url: https://gitlab.com/mkoese/openfire-oci.git
   revision: main

@@ -1,3 +1,7 @@
+namespace:
+  name: openfire
+  create: true
+
 image:
   repository: openfire-oci
   tag: "5.0.3"

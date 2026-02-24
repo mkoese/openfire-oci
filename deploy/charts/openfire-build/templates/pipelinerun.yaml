@@ -1,8 +1,9 @@
 {{- if .Values.pipelineRun.enabled }}
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   generateName: openfire-build-
+  namespace: {{ .Values.namespace.name }}
 spec:
   pipelineRef:
     name: openfire-build

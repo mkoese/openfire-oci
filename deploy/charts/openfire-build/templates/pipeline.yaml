@@ -1,7 +1,8 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: openfire-build
+  namespace: {{ .Values.namespace.name }}
 spec:
   params:
     - name: git-url
@@ -22,8 +23,14 @@ spec:
   tasks:
     - name: fetch-source
       taskRef:
-        name: git-clone
-        kind: ClusterTask
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: git-clone
+          - name: namespace
+            value: openshift-pipelines
       workspaces:
         - name: output
           workspace: shared-workspace
@@ -46,7 +53,7 @@ spec:
           - name: download
             image: registry.access.redhat.com/ubi9/ubi-minimal:9.5
             script: |
-              #!/bin/bash
+              #!/bin/sh
               cd $(workspaces.source.path)
               curl -fsSL -o openfire_{{ .Values.openfire.version | replace "." "_" }}.tar.gz \
                 {{ .Values.openfire.downloadUrl }}
@@ -55,8 +62,14 @@ spec:
       runAfter:
         - download-openfire
       taskRef:
-        name: buildah
-        kind: ClusterTask
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: buildah
+          - name: namespace
+            value: openshift-pipelines
       workspaces:
         - name: source
           workspace: shared-workspace
