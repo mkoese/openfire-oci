@@ -57,11 +57,15 @@ LABEL org.opencontainers.image.title="Openfire XMPP Server" \
 
 ENV OPENFIRE_HOME=/opt/openfire
 
-# Only filesystem layer in the runtime stage.
 # --chown sets UID 1001 / GID 0 (OpenShift arbitrary UID compatible).
 # --chmod 775 grants group write so GID 0 can modify files at runtime.
-# This avoids a separate RUN chown/chmod layer that would duplicate all files.
 COPY --from=builder --chown=1001:0 --chmod=775 /opt/openfire ${OPENFIRE_HOME}
+
+# COPY --chmod only applies to copied contents, not the destination directory.
+# OpenShift runs with an arbitrary UID in GID 0 — the home directory itself
+# needs group-write so Openfire can create runtime files.
+USER root
+RUN chmod 775 ${OPENFIRE_HOME}
 
 # Volumes for data that should persist across container restarts
 VOLUME ["${OPENFIRE_HOME}/conf", \
