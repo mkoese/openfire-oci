@@ -4,7 +4,7 @@ metadata:
   name: {{ .Release.Name }}-openfire
   namespace: {{ .Values.namespace.name }}
   labels:
-    app: openfire
+    {{- include "openfire.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -42,4 +42,4 @@ spec:
       port: {{ .Values.service.ports.adminSsl }}
       targetPort: 9091
   selector:
-    app: openfire
+    {{- include "openfire.selectorLabels" . | nindent 4 }}

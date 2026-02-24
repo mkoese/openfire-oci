@@ -5,7 +5,7 @@ metadata:
   name: {{ .Release.Name }}-openfire-admin
   namespace: {{ .Values.namespace.name }}
   labels:
-    app: openfire
+    {{- include "openfire.labels" . | nindent 4 }}
 spec:
   {{- if .Values.routes.admin.host }}
   host: {{ .Values.routes.admin.host }}
@@ -27,7 +27,7 @@ metadata:
   name: {{ .Release.Name }}-openfire-bosh
   namespace: {{ .Values.namespace.name }}
   labels:
-    app: openfire
+    {{- include "openfire.labels" . | nindent 4 }}
 spec:
   {{- if .Values.routes.bosh.host }}
   host: {{ .Values.routes.bosh.host }}

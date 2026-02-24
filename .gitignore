@@ -13,6 +13,10 @@ plugins/*.jar
 # OS
 .DS_Store
 
+# Secrets (never commit real secrets)
+secret*
+!deploy/charts/openfire/templates/secret.yaml
+
 # Openfire auto-generated config (don't commit)
 deploy/quadlet/conf/available-plugins.xml
 deploy/quadlet/conf/server-update.xml

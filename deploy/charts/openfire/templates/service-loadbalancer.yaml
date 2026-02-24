@@ -5,7 +5,7 @@ metadata:
   name: {{ .Release.Name }}-openfire-xmpp
   namespace: {{ .Values.namespace.name }}
   labels:
-    app: openfire
+    {{- include "openfire.labels" . | nindent 4 }}
   {{- if .Values.loadBalancer.annotations }}
   annotations:
     {{- toYaml .Values.loadBalancer.annotations | nindent 4 }}
@@ -13,7 +13,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    app: openfire
+    {{- include "openfire.selectorLabels" . | nindent 4 }}
   ports:
     - name: xmpp
       port: {{ .Values.service.ports.xmpp }}

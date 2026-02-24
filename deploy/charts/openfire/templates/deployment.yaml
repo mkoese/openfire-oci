@@ -4,18 +4,18 @@ metadata:
   name: {{ .Release.Name }}-openfire
   namespace: {{ .Values.namespace.name }}
   labels:
-    app: openfire
+    {{- include "openfire.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: openfire
+      {{- include "openfire.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: openfire
+        {{- include "openfire.labels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ .Release.Name }}-openfire
       affinity:
@@ -23,14 +23,14 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
                 matchLabels:
-                  app: openfire
+                  {{- include "openfire.selectorLabels" . | nindent 18 }}
               topologyKey: kubernetes.io/hostname
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
               podAffinityTerm:
                 labelSelector:
                   matchLabels:
-                    app: openfire
+                    {{- include "openfire.selectorLabels" . | nindent 20 }}
                 topologyKey: topology.kubernetes.io/zone
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:

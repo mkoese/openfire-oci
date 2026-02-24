@@ -4,7 +4,7 @@ metadata:
   name: {{ .Release.Name }}-openfire-data
   namespace: {{ .Values.namespace.name }}
   labels:
-    app: openfire
+    {{- include "openfire.labels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -21,7 +21,7 @@ metadata:
   name: {{ .Release.Name }}-openfire-plugins
   namespace: {{ .Values.namespace.name }}
   labels:
-    app: openfire
+    {{- include "openfire.labels" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce
