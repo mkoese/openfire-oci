@@ -101,9 +101,4 @@ ENV JAVA_OPTS="-XX:+UseContainerSupport \
   -Dlog4j2.formatMsgNoLookups=true \
   -Djava.security.egd=file:/dev/urandom"
 
-CMD java -server \
-    ${JAVA_OPTS} \
-    -DopenfireHome=/opt/openfire \
-    -Dopenfire.lib.dir=/opt/openfire/lib \
-    -Dlog4j.configurationFile=/opt/openfire/lib/log4j2.xml \
-    -jar /opt/openfire/lib/startup.jar
+ENTRYPOINT ["sh", "-c", "exec java -server ${JAVA_OPTS} -DopenfireHome=/opt/openfire -Dopenfire.lib.dir=/opt/openfire/lib -Dlog4j.configurationFile=/opt/openfire/lib/log4j2.xml -jar /opt/openfire/lib/startup.jar"]
