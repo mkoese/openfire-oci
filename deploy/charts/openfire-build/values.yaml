@@ -20,6 +20,10 @@ workspace:
 registry:
   secretName: openfire-registry-credentials
 
+plugins:
+  - name: userstatus
+    url: https://igniterealtime.org/projects/openfire/plugins/1.3.0/userstatus.jar
+
 pipelineRun:
   # Set to true to create a PipelineRun (triggers an immediate build)
   enabled: false

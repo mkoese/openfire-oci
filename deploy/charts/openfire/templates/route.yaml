@@ -7,7 +7,9 @@ metadata:
   labels:
     app: openfire
 spec:
+  {{- if .Values.route.host }}
   host: {{ .Values.route.host }}
+  {{- end }}
   port:
     targetPort: admin
   to:

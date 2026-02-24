@@ -49,7 +49,29 @@ spec:
       taskSpec:
         workspaces:
           - name: source
+        {{- if .Values.plugins }}
+        volumes:
+          - name: plugin-list
+            configMap:
+              name: openfire-plugins
+        {{- end }}
         steps:
+          {{- if .Values.plugins }}
+          - name: download-plugins
+            image: registry.access.redhat.com/ubi9/ubi-minimal:9.5
+            volumeMounts:
+              - name: plugin-list
+                mountPath: /etc/openfire-plugins
+            script: |
+              #!/bin/sh
+              set -e
+              mkdir -p $(workspaces.source.path)/plugins
+              while IFS='|' read -r name url; do
+                [ -z "$name" ] && continue
+                echo "Downloading plugin: $name from $url"
+                curl -fsSL -o "$(workspaces.source.path)/plugins/${name}.jar" "$url"
+              done < /etc/openfire-plugins/plugins.txt
+          {{- end }}
           - name: download
             image: registry.access.redhat.com/ubi9/ubi-minimal:9.5
             script: |

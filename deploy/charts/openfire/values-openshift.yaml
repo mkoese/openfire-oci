@@ -5,4 +5,3 @@ image:
 
 route:
   enabled: true
-  host: openfire.apps.example.com

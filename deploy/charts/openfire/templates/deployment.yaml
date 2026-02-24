@@ -5,8 +5,14 @@ metadata:
   namespace: {{ .Values.namespace.name }}
   labels:
     app: openfire
+  {{- if .Values.image.trigger.enabled }}
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"{{ .Values.image.repository }}:{{ .Values.image.tag }}","namespace":"{{ .Values.image.trigger.sourceNamespace }}"},"fieldPath":"spec.template.spec.containers[?(@.name==\"openfire\")].image"},{"from":{"kind":"ImageStreamTag","name":"{{ .Values.image.repository }}:{{ .Values.image.tag }}","namespace":"{{ .Values.image.trigger.sourceNamespace }}"},"fieldPath":"spec.template.spec.initContainers[?(@.name==\"init-conf\")].image"}]'
+  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: openfire
@@ -19,7 +25,11 @@ spec:
         runAsNonRoot: true
       initContainers:
         - name: init-conf
+          {{- if .Values.image.trigger.enabled }}
+          image: "image-registry.openshift-image-registry.svc:5000/{{ .Values.image.trigger.sourceNamespace }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
           command:
             - sh
             - -c
@@ -46,7 +56,11 @@ spec:
               mountPath: /security
       containers:
         - name: openfire
+          {{- if .Values.image.trigger.enabled }}
+          image: "image-registry.openshift-image-registry.svc:5000/{{ .Values.image.trigger.sourceNamespace }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: xmpp

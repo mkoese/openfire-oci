@@ -1,0 +1,12 @@
+{{- if .Values.plugins }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openfire-plugins
+  namespace: {{ .Values.namespace.name }}
+data:
+  plugins.txt: |
+    {{- range .Values.plugins }}
+    {{ .name }}|{{ .url }}
+    {{- end }}
+{{- end }}
