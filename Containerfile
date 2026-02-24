@@ -20,8 +20,16 @@ RUN --mount=type=bind,target=/ctx \
     }
 
 COPY openfire_${OPENFIRE_VERSION_FILE}.tar.gz /tmp/
+COPY log4j2-container.xml /tmp/
+COPY conf/openfire.xml /tmp/
+COPY plugins/ /tmp/plugins/
+
 RUN tar xzf /tmp/openfire_${OPENFIRE_VERSION_FILE}.tar.gz -C /opt/ \
-    && rm -rf /opt/openfire/jre /opt/openfire/documentation
+    && rm -rf /opt/openfire/jre /opt/openfire/documentation \
+    && cp /tmp/log4j2-container.xml /opt/openfire/lib/log4j2.xml \
+    && cp /tmp/openfire.xml /opt/openfire/conf/openfire.xml \
+    && cp /tmp/plugins/*.jar /opt/openfire/plugins/ 2>/dev/null; \
+    rm -rf /tmp/*
 
 # ── Stage 2: Runtime ─────────────────────────────────────────────────────────
 FROM registry.access.redhat.com/ubi9/openjdk-17-runtime:1.20
@@ -36,24 +44,8 @@ LABEL org.opencontainers.image.title="Openfire XMPP Server" \
 
 ENV OPENFIRE_HOME=/opt/openfire
 
-COPY --from=builder /opt/openfire ${OPENFIRE_HOME}
-
-# Override log4j2.xml so ALL logs go to stdout (not just plugin messages)
-COPY log4j2-container.xml ${OPENFIRE_HOME}/lib/log4j2.xml
-
-# Default config with autosetup (override via volume mount for production)
-COPY conf/openfire.xml ${OPENFIRE_HOME}/conf/openfire.xml
-
-# Non-root: UID 1001, GID 0 for OpenShift arbitrary UID
-USER root
-
-# Pre-install plugins (download .jar files into plugins/ before building)
-COPY plugins/ /tmp/plugins/
-RUN cp /tmp/plugins/*.jar ${OPENFIRE_HOME}/plugins/ 2>/dev/null || true \
-    && rm -rf /tmp/plugins
-
-RUN chown -R 1001:0 ${OPENFIRE_HOME} \
-    && chmod -R g=u ${OPENFIRE_HOME}
+# Single COPY from builder with ownership set — no extra RUN layer needed
+COPY --from=builder --chown=1001:0 --chmod=775 /opt/openfire ${OPENFIRE_HOME}
 
 VOLUME ["${OPENFIRE_HOME}/conf", \
         "${OPENFIRE_HOME}/embedded-db", \
