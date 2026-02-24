@@ -80,7 +80,7 @@ VOLUME ["${OPENFIRE_HOME}/conf", \
 EXPOSE 5222 5223 5269 5270 5275 5276 7070 7443 7777 9090 9091
 
 # Aligned with K8s liveness/readiness probes in deployment.yaml
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -sf http://localhost:9090/login.jsp || exit 1
 
 # Run as non-root

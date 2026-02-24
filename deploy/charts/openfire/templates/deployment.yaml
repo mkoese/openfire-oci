@@ -5,10 +5,6 @@ metadata:
   namespace: {{ .Values.namespace.name }}
   labels:
     app: openfire
-  {{- if .Values.image.trigger.enabled }}
-  annotations:
-    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"{{ .Values.image.repository }}:{{ .Values.image.tag }}","namespace":"{{ .Values.image.trigger.sourceNamespace }}"},"fieldPath":"spec.template.spec.containers[?(@.name==\"openfire\")].image"},{"from":{"kind":"ImageStreamTag","name":"{{ .Values.image.repository }}:{{ .Values.image.tag }}","namespace":"{{ .Values.image.trigger.sourceNamespace }}"},"fieldPath":"spec.template.spec.initContainers[?(@.name==\"init-conf\")].image"}]'
-  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
@@ -49,6 +45,18 @@ spec:
       initContainers:
         - name: init-conf
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 50m
+              memory: 32Mi
           command:
             - sh
             - -c
@@ -106,15 +114,15 @@ spec:
             httpGet:
               path: /login.jsp
               port: admin
-            initialDelaySeconds: 60
-            periodSeconds: 30
+            initialDelaySeconds: 10
+            periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /login.jsp
               port: admin
-            initialDelaySeconds: 30
+            initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3

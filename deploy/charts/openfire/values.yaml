@@ -6,10 +6,6 @@ image:
   repository: openfire-oci
   tag: "5.0.3"
   pullPolicy: IfNotPresent
-  # Enable OpenShift ImageStream trigger to auto-redeploy on image changes
-  trigger:
-    enabled: true
-    sourceNamespace: openfire-build
 
 replicaCount: 1
 
