@@ -19,6 +19,9 @@ Volume=/var/lib/openfire/embedded-db:/opt/openfire/embedded-db:Z
 Volume=/var/lib/openfire/plugins:/opt/openfire/plugins:Z
 Volume=/var/lib/openfire/security:/opt/openfire/resources/security:Z
 
+# JVM flags (override image defaults)
+Environment=JAVA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -Dlog4j2.formatMsgNoLookups=true -Djava.security.egd=file:/dev/urandom
+
 User=1001
 Group=0
 

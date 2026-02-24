@@ -87,19 +87,23 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 \
 USER 1001
 WORKDIR ${OPENFIRE_HOME}
 
-# JVM flags:
-#   -XX:+UseContainerSupport     — respect cgroup memory/CPU limits
-#   -XX:MaxRAMPercentage=75.0    — use up to 75% of container memory for heap
-#   -XX:+UseG1GC                 — low-latency garbage collector
-#   -XX:+ExitOnOutOfMemoryError  — crash fast instead of running degraded
-#   -Dlog4j2.formatMsgNoLookups  — CVE-2021-44228 (Log4Shell) mitigation
-CMD ["java", "-server", \
-     "-XX:+UseContainerSupport", \
-     "-XX:MaxRAMPercentage=75.0", \
-     "-XX:+UseG1GC", \
-     "-XX:+ExitOnOutOfMemoryError", \
-     "-Dlog4j2.formatMsgNoLookups=true", \
-     "-DopenfireHome=/opt/openfire", \
-     "-Dopenfire.lib.dir=/opt/openfire/lib", \
-     "-Dlog4j.configurationFile=/opt/openfire/lib/log4j2.xml", \
-     "-jar", "/opt/openfire/lib/startup.jar"]
+# JVM flags (override via JAVA_OPTS environment variable):
+#   -XX:+UseContainerSupport              — respect cgroup memory/CPU limits
+#   -XX:MaxRAMPercentage=75.0             — use up to 75% of container memory for heap
+#   -XX:+UseG1GC                          — low-latency garbage collector
+#   -XX:+ExitOnOutOfMemoryError           — crash fast instead of running degraded
+#   -Dlog4j2.formatMsgNoLookups           — CVE-2021-44228 (Log4Shell) mitigation
+#   -Djava.security.egd=file:/dev/urandom — non-blocking entropy for faster TLS handshakes
+ENV JAVA_OPTS="-XX:+UseContainerSupport \
+  -XX:MaxRAMPercentage=75.0 \
+  -XX:+UseG1GC \
+  -XX:+ExitOnOutOfMemoryError \
+  -Dlog4j2.formatMsgNoLookups=true \
+  -Djava.security.egd=file:/dev/urandom"
+
+CMD java -server \
+    ${JAVA_OPTS} \
+    -DopenfireHome=/opt/openfire \
+    -Dopenfire.lib.dir=/opt/openfire/lib \
+    -Dlog4j.configurationFile=/opt/openfire/lib/log4j2.xml \
+    -jar /opt/openfire/lib/startup.jar

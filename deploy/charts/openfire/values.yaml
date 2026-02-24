@@ -49,6 +49,15 @@ persistence:
   plugins:
     size: 512Mi
 
+# JVM flags — overrides Containerfile JAVA_OPTS.
+javaOpts:
+  - -XX:+UseContainerSupport              # respect cgroup memory/CPU limits
+  - -XX:MaxRAMPercentage=75.0             # max heap as percentage of container memory limit
+  - -XX:+UseG1GC                          # low-latency garbage collector
+  - -XX:+ExitOnOutOfMemoryError           # crash fast instead of running degraded
+  - -Dlog4j2.formatMsgNoLookups=true      # CVE-2021-44228 (Log4Shell) mitigation
+  - -Djava.security.egd=file:/dev/urandom # non-blocking entropy for faster TLS handshakes
+
 resources:
   limits:
     memory: 512Mi
