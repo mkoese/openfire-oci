@@ -1,0 +1,50 @@
+{{- if .Values.loadBalancer.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-openfire-xmpp
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: openfire
+  {{- if .Values.loadBalancer.annotations }}
+  annotations:
+    {{- toYaml .Values.loadBalancer.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: openfire
+  ports:
+    - name: xmpp
+      port: {{ .Values.service.ports.xmpp }}
+      targetPort: {{ .Values.service.ports.xmpp }}
+      protocol: TCP
+    - name: xmpp-ssl
+      port: {{ .Values.service.ports.xmppSsl }}
+      targetPort: {{ .Values.service.ports.xmppSsl }}
+      protocol: TCP
+    - name: s2s
+      port: {{ .Values.service.ports.s2s }}
+      targetPort: {{ .Values.service.ports.s2s }}
+      protocol: TCP
+    - name: s2s-ssl
+      port: {{ .Values.service.ports.s2sSsl }}
+      targetPort: {{ .Values.service.ports.s2sSsl }}
+      protocol: TCP
+    - name: component
+      port: {{ .Values.service.ports.component }}
+      targetPort: {{ .Values.service.ports.component }}
+      protocol: TCP
+    - name: component-ssl
+      port: {{ .Values.service.ports.componentSsl }}
+      targetPort: {{ .Values.service.ports.componentSsl }}
+      protocol: TCP
+    - name: bosh-ssl
+      port: {{ .Values.service.ports.boshSsl }}
+      targetPort: {{ .Values.service.ports.boshSsl }}
+      protocol: TCP
+    - name: filetransfer
+      port: {{ .Values.service.ports.fileTransfer }}
+      targetPort: {{ .Values.service.ports.fileTransfer }}
+      protocol: TCP
+{{- end }}

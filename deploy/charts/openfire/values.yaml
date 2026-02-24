@@ -28,9 +28,23 @@ service:
     admin: 9090
     adminSsl: 9091
 
-route:
+loadBalancer:
   enabled: false
-  # host: openfire.apps.example.com  # optional — omit to let OpenShift auto-generate
+  # annotations: {}  # cloud provider annotations
+
+routes:
+  admin:
+    enabled: false
+    # host: openfire-admin.apps.example.com
+  adminSsl:
+    enabled: false
+    # host: openfire-admin-ssl.apps.example.com
+  bosh:
+    enabled: false
+    # host: openfire-bosh.apps.example.com
+  boshSsl:
+    enabled: false
+    # host: openfire-bosh-ssl.apps.example.com
 
 persistence:
   storageClassName: ""
