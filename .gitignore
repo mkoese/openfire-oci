@@ -2,21 +2,39 @@
 openfire_*.tar.gz
 *.tar
 
-# Plugin jars (download before building, not committed)
+# Plugin JARs (download before building)
 plugins/*.jar
-
-# IDE
-.idea/
-.vscode/
-*.swp
-
-# OS
-.DS_Store
 
 # Secrets (never commit real secrets)
 secret*
 !deploy/charts/openfire/templates/secret.yaml
 
-# Openfire auto-generated config (don't commit)
+# IDE
+.idea/
+.vscode/
+*.swp
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Java
+*.class
+*.log
+hs_err_pid*
+
+# Logs
+logs/
+
+# Temp files and folders
+tmp/
+temp/
+*.tmp
+*.bak
+*~
+
+# Openfire auto-generated config
 deploy/quadlet/conf/available-plugins.xml
 deploy/quadlet/conf/server-update.xml
