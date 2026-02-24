@@ -4,7 +4,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Container]
-Image=openfire-ubi:5.0.3
+Image=openfire-oci:5.0.3
 ContainerName=openfire
 
 # Host:Container port mapping

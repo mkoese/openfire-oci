@@ -3,7 +3,7 @@ git:
   revision: main
 
 image:
-  name: image-registry.openshift-image-registry.svc:5000/openfire/openfire-ubi
+  name: image-registry.openshift-image-registry.svc:5000/openfire/openfire-oci
   tag: "5.0.3"
 
 openfire:

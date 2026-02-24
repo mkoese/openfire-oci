@@ -5,8 +5,8 @@ Openfire XMPP server on Red Hat UBI9 OpenJDK 17.
 ## 🚀 Quick Start
 
 ```bash
-podman build -t openfire-ubi:5.0.3 .
-podman run -d --name openfire -p 9090:9090 openfire-ubi:5.0.3
+podman build -t openfire-oci:5.0.3 .
+podman run -d --name openfire -p 9090:9090 openfire-oci:5.0.3
 ```
 
 Open http://localhost:9090 and log in with `admin` / `admin`. No setup wizard — the image auto-configures on first start.
@@ -45,7 +45,7 @@ Bind-mount a directory with your config:
 ```bash
 podman run -d --name openfire \
   -v /path/to/your/conf:/opt/openfire/conf:Z \
-  openfire-ubi:5.0.3
+  openfire-oci:5.0.3
 ```
 
 ### ☸️ Kubernetes / OpenShift
@@ -78,13 +78,13 @@ curl -fsSL -o openfire_5_0_3.tar.gz \
   https://github.com/igniterealtime/Openfire/releases/download/v5.0.3/openfire_5_0_3.tar.gz
 
 # Build
-podman build --platform linux/amd64 -t openfire-ubi:5.0.3 .
+podman build --platform linux/amd64 -t openfire-oci:5.0.3 .
 
 # Different version
 podman build --platform linux/amd64 \
   --build-arg OPENFIRE_VERSION=5.1.0 \
   --build-arg OPENFIRE_VERSION_FILE=5_1_0 \
-  -t openfire-ubi:5.1.0 .
+  -t openfire-oci:5.1.0 .
 ```
 
 ### 🔒 Air-Gapped
@@ -100,12 +100,12 @@ curl -fsSL -o openfire_5_0_3.tar.gz \
 
 # On air-gapped machine — build
 podman load -i ubi9-openjdk-17-runtime.tar
-podman build --platform linux/amd64 -t openfire-ubi:5.0.3 .
+podman build --platform linux/amd64 -t openfire-oci:5.0.3 .
 
 # Push built image to an internal registry
-podman save -o openfire-ubi-5.0.3.tar openfire-ubi:5.0.3
-skopeo copy docker-archive:openfire-ubi-5.0.3.tar \
-  docker://internal-registry.local/openfire-ubi:5.0.3
+podman save -o openfire-oci-5.0.3.tar openfire-oci:5.0.3
+skopeo copy docker-archive:openfire-oci-5.0.3.tar \
+  docker://internal-registry.local/openfire-oci:5.0.3
 ```
 
 ## 🖥️ Deploy
@@ -117,7 +117,7 @@ podman run -d --name openfire \
   -p 19090:9090 -p 19091:9091 \
   -p 15222:5222 -p 15223:5223 \
   -v $(pwd)/deploy/quadlet/conf:/opt/openfire/conf:Z \
-  openfire-ubi:5.0.3
+  openfire-oci:5.0.3
 ```
 
 ### Quadlet (systemd)
@@ -147,7 +147,7 @@ helm template openfire ./deploy/charts/openfire | oc apply -f -
 
 # Custom registry
 helm template openfire ./deploy/charts/openfire \
-  --set image.repository=image-registry.openshift-image-registry.svc:5000/openfire/openfire-ubi \
+  --set image.repository=image-registry.openshift-image-registry.svc:5000/openfire/openfire-oci \
   | oc apply -f -
 ```
 
