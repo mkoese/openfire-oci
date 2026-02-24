@@ -35,10 +35,7 @@ spec:
             - -c
             - |
               rm -rf /plugins/lost+found /data/lost+found
-              if [ ! -f /plugins/.initialized ]; then
-                cp -r /opt/openfire/plugins/* /plugins/ 2>/dev/null || true
-                touch /plugins/.initialized
-              fi
+              cp -rn /opt/openfire/plugins/*.jar /plugins/ 2>/dev/null || true
               cp -rn /opt/openfire/conf/* /conf/ 2>/dev/null || true
               cp /conf-secret/* /conf/
               cp -rn /opt/openfire/resources/security/* /security/ 2>/dev/null || true
