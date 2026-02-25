@@ -12,10 +12,16 @@ spec:
       value: {{ .Values.git.url | quote }}
     - name: git-revision
       value: {{ .Values.git.revision | quote }}
+    - name: repository
+      value: {{ .Values.image.repository | quote }}
     - name: image-name
       value: {{ .Values.image.name | quote }}
     - name: image-tag
-      value: {{ .Values.image.tag | quote }}
+      value: {{ .Values.image.tag | default .Values.openfire.version | quote }}
+    - name: openfire-version
+      value: {{ .Values.openfire.version | quote }}
+    - name: openfire-download-base-url
+      value: {{ .Values.openfire.downloadBaseUrl | quote }}
   workspaces:
     - name: shared-workspace
       volumeClaimTemplate:

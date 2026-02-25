@@ -1,0 +1,59 @@
+# Openfire OCI - GitHub Actions Pipeline
+#
+# Builds and pushes the Openfire container image to Quay.io.
+#
+# Required repository secrets (Settings > Secrets and variables > Actions):
+#   QUAY_USERNAME  - Quay.io robot account or username
+#   QUAY_PASSWORD  - Quay.io robot account token or password
+#
+# Triggers: push to default branch, any tag, manual (workflow_dispatch)
+
+name: Build and Push
+
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
+  workflow_dispatch:
+    inputs:
+      image-tag:
+        description: "Image tag (defaults to OPENFIRE_VERSION)"
+        required: false
+
+env:
+  OPENFIRE_VERSION: "5.0.3"
+  OPENFIRE_DOWNLOAD_BASE_URL: "https://github.com/igniterealtime/Openfire/releases/download"
+  REPOSITORY: "quay.io"
+  IMAGE_NAME: "mikailkose/openfire-oci"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_TAG: ${{ inputs.image-tag || '' }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: download-plugins
+        run: |
+          mkdir -p plugins
+          while IFS='|' read -r name url; do
+            [ -z "$name" ] && continue
+            echo "Downloading plugin: $name from $url"
+            curl -fsSL -o "plugins/${name}.jar" "$url"
+          done < plugins.txt
+
+      - name: download-openfire
+        run: |
+          VERSION_FILE=$(echo "${OPENFIRE_VERSION}" | tr '.' '_')
+          echo "Downloading Openfire ${OPENFIRE_VERSION}"
+          curl -fsSL -o "openfire_${VERSION_FILE}.tar.gz" \
+            "${OPENFIRE_DOWNLOAD_BASE_URL}/v${OPENFIRE_VERSION}/openfire_${VERSION_FILE}.tar.gz"
+
+      - name: build-image
+        run: |
+          IMAGE_TAG="${IMAGE_TAG:-${OPENFIRE_VERSION}}"
+          buildah login -u "${{ secrets.QUAY_USERNAME }}" -p "${{ secrets.QUAY_PASSWORD }}" "${REPOSITORY}"
+          buildah build --platform linux/amd64 -t "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}" .
+          buildah push "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}"

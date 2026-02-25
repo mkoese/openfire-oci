@@ -2,43 +2,41 @@
 # Extracts the Openfire tarball, strips unused components (bundled JRE, docs),
 # and assembles config + plugins into /opt/openfire so runtime needs only one COPY.
 #
-# Place openfire_<VERSION_FILE>.tar.gz in build context before building.
-# Override version at build time:
-#   --build-arg OPENFIRE_VERSION=5.1.0 --build-arg OPENFIRE_VERSION_FILE=5_1_0
+# Place openfire_<VERSION>.tar.gz (dots replaced with underscores) in build context.
+# Override version at build time:  --build-arg OPENFIRE_VERSION=5.1.0
 FROM registry.access.redhat.com/ubi9/ubi:9.5 AS builder
 
 ARG OPENFIRE_VERSION=5.0.3
-ARG OPENFIRE_VERSION_FILE=5_0_3
+ARG OPENFIRE_DOWNLOAD_BASE_URL=https://github.com/igniterealtime/Openfire/releases/download
 
-# Validate the tarball exists using a bind mount (no layer created).
-# Prints download instructions on failure so the user knows what to do.
-RUN --mount=type=bind,target=/ctx \
-    test -f /ctx/openfire_${OPENFIRE_VERSION_FILE}.tar.gz || { \
-      echo ""; \
-      echo "ERROR: openfire_${OPENFIRE_VERSION_FILE}.tar.gz not found in build context."; \
-      echo "       Download it first:"; \
-      echo "       curl -fsSL -o openfire_${OPENFIRE_VERSION_FILE}.tar.gz \\"; \
-      echo "         https://github.com/igniterealtime/Openfire/releases/download/v${OPENFIRE_VERSION}/openfire_${OPENFIRE_VERSION_FILE}.tar.gz"; \
-      echo ""; \
-      exit 1; \
-    }
-
-# Stage all build-context files into /tmp for the single RUN below
-COPY openfire_${OPENFIRE_VERSION_FILE}.tar.gz /tmp/
+# Stage config files into /tmp for the single RUN below
 COPY log4j2-container.xml /tmp/
 COPY conf/openfire.xml /tmp/
 COPY plugins/ /tmp/plugins/
 
-# Single RUN: extract, strip, overlay config + plugins, then clean up /tmp.
+# Single RUN: derive version file name, validate tarball, extract, strip,
+# overlay config + plugins, then clean up /tmp.
+# Uses bind mount for the tarball so no layer is created for the large .tar.gz.
 # - Removes bundled JRE (container provides OpenJDK 17) and docs to save space
 # - Replaces log4j2.xml to route all logs to stdout for container log drivers
 # - Copies default openfire.xml with autosetup for zero-config first boot
 # - Installs any plugin JARs placed in plugins/ before build
-RUN tar xzf /tmp/openfire_${OPENFIRE_VERSION_FILE}.tar.gz -C /opt/ \
-    && rm -rf /opt/openfire/jre /opt/openfire/documentation \
-    && cp /tmp/log4j2-container.xml /opt/openfire/lib/log4j2.xml \
-    && cp /tmp/openfire.xml /opt/openfire/conf/openfire.xml \
-    && cp /tmp/plugins/*.jar /opt/openfire/plugins/ 2>/dev/null; \
+RUN --mount=type=bind,target=/ctx \
+    VERSION_FILE=$(echo "${OPENFIRE_VERSION}" | tr '.' '_') && \
+    test -f /ctx/openfire_${VERSION_FILE}.tar.gz || { \
+      echo ""; \
+      echo "ERROR: openfire_${VERSION_FILE}.tar.gz not found in build context."; \
+      echo "       Download it first:"; \
+      echo "       curl -fsSL -o openfire_${VERSION_FILE}.tar.gz \\"; \
+      echo "         ${OPENFIRE_DOWNLOAD_BASE_URL}/v${OPENFIRE_VERSION}/openfire_${VERSION_FILE}.tar.gz"; \
+      echo ""; \
+      exit 1; \
+    } && \
+    tar xzf /ctx/openfire_${VERSION_FILE}.tar.gz -C /opt/ && \
+    rm -rf /opt/openfire/jre /opt/openfire/documentation && \
+    cp /tmp/log4j2-container.xml /opt/openfire/lib/log4j2.xml && \
+    cp /tmp/openfire.xml /opt/openfire/conf/openfire.xml && \
+    cp /tmp/plugins/*.jar /opt/openfire/plugins/ 2>/dev/null; \
     chmod 775 /opt/openfire && rm -rf /tmp/*
 
 # ── Stage 2: Runtime ─────────────────────────────────────────────────────────

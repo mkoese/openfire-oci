@@ -1,0 +1,44 @@
+# Openfire OCI - GitLab CI/CD Pipeline
+#
+# Builds and pushes the Openfire container image to Quay.io.
+#
+# Required CI/CD variables (Settings > CI/CD > Variables):
+#   QUAY_USERNAME  - Quay.io robot account or username
+#   QUAY_PASSWORD  - Quay.io robot account token or password (masked)
+#
+# Triggers: push to default branch, any tag, manual (Run pipeline)
+
+variables:
+  OPENFIRE_VERSION: "5.0.3"
+  OPENFIRE_DOWNLOAD_BASE_URL: "https://github.com/igniterealtime/Openfire/releases/download"
+  REPOSITORY: "quay.io"
+  IMAGE_NAME: "mikailkose/openfire-oci"
+  IMAGE_TAG: "${OPENFIRE_VERSION}"
+
+build-and-push:
+  image:
+    name: registry.access.redhat.com/ubi9/buildah:9.5
+    entrypoint: [""]
+  variables:
+    STORAGE_DRIVER: vfs
+  script:
+    - |
+      mkdir -p plugins
+      while IFS='|' read -r name url; do
+        [ -z "$name" ] && continue
+        echo "Downloading plugin: $name from $url"
+        curl -fsSL -o "plugins/${name}.jar" "$url"
+      done < plugins.txt
+    - |
+      VERSION_FILE=$(echo "${OPENFIRE_VERSION}" | tr '.' '_')
+      echo "Downloading Openfire ${OPENFIRE_VERSION}"
+      curl -fsSL -o "openfire_${VERSION_FILE}.tar.gz" \
+        "${OPENFIRE_DOWNLOAD_BASE_URL}/v${OPENFIRE_VERSION}/openfire_${VERSION_FILE}.tar.gz"
+    - |
+      buildah login -u "${QUAY_USERNAME}" -p "${QUAY_PASSWORD}" "${REPOSITORY}"
+      buildah build --platform linux/amd64 -t "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}" .
+      buildah push "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "web"

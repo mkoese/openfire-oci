@@ -7,12 +7,13 @@ git:
   revision: main
 
 image:
-  name: image-registry.openshift-image-registry.svc:5000/openfire-build/openfire-oci
-  tag: "5.0.3"
+  repository: image-registry.openshift-image-registry.svc:5000
+  name: openfire-build/openfire-oci
+  # tag defaults to openfire.version if not set
 
 openfire:
   version: "5.0.3"
-  downloadUrl: https://github.com/igniterealtime/Openfire/releases/download/v5.0.3/openfire_5_0_3.tar.gz
+  downloadBaseUrl: "https://github.com/igniterealtime/Openfire/releases/download"
 
 workspace:
   storageSize: 1Gi

@@ -11,12 +11,21 @@ spec:
     - name: git-revision
       type: string
       default: {{ .Values.git.revision | quote }}
+    - name: repository
+      type: string
+      default: {{ .Values.image.repository | quote }}
     - name: image-name
       type: string
       default: {{ .Values.image.name | quote }}
     - name: image-tag
       type: string
-      default: {{ .Values.image.tag | quote }}
+      default: {{ .Values.image.tag | default .Values.openfire.version | quote }}
+    - name: openfire-version
+      type: string
+      default: {{ .Values.openfire.version | quote }}
+    - name: openfire-download-base-url
+      type: string
+      default: {{ .Values.openfire.downloadBaseUrl | quote }}
   workspaces:
     - name: shared-workspace
   tasks:
@@ -71,13 +80,15 @@ spec:
                 curl -fsSL -o "$(workspaces.source.path)/plugins/${name}.jar" "$url"
               done < /etc/openfire-plugins/plugins.txt
           {{- end }}
-          - name: download
+          - name: download-openfire
             image: registry.access.redhat.com/ubi9/ubi-minimal:9.5
             script: |
               #!/bin/sh
               cd $(workspaces.source.path)
-              curl -fsSL -o openfire_{{ .Values.openfire.version | replace "." "_" }}.tar.gz \
-                {{ .Values.openfire.downloadUrl }}
+              VERSION_FILE=$(echo "$(params.openfire-version)" | tr '.' '_')
+              echo "Downloading Openfire $(params.openfire-version)"
+              curl -fsSL -o "openfire_${VERSION_FILE}.tar.gz" \
+                "$(params.openfire-download-base-url)/v$(params.openfire-version)/openfire_${VERSION_FILE}.tar.gz"
 
     - name: build-image
       runAfter:
@@ -96,7 +107,7 @@ spec:
           workspace: shared-workspace
       params:
         - name: IMAGE
-          value: $(params.image-name):$(params.image-tag)
+          value: $(params.repository)/$(params.image-name):$(params.image-tag)
         - name: DOCKERFILE
           value: ./Containerfile
         - name: TLS_VERIFY
