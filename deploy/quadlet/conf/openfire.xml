@@ -23,10 +23,24 @@
     </defaultProvider>
   </database>
   -->  
-  <!-- Embedded database (development only) -->  
-  <connectionProvider> 
-    <className>org.jivesoftware.database.EmbeddedConnectionProvider</className> 
-  </connectionProvider>  
+  <!-- Embedded database (development only) -->
+  <connectionProvider>
+    <className>org.jivesoftware.database.EmbeddedConnectionProvider</className>
+  </connectionProvider>
+
+  <!-- Disable RSS feeds and update checks (airgapped-friendly) -->
+  <rss>
+    <enabled>false</enabled>
+  </rss>
+  <update>
+    <service>
+      <enabled>false</enabled>
+    </service>
+    <notify>
+      <admins>false</admins>
+    </notify>
+  </update>
+
   <locale>en</locale>
   <fqdn>localhost</fqdn>
 
