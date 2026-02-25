@@ -16,7 +16,7 @@
 <security> 
   <encrypt> 
     <!-- This can be set to "AES" or "Blowfish" (default) at setup time -->  
-    <algorithm>Blowfish</algorithm>  
+    <algorithm>AES</algorithm>  
     <key> 
       <!-- 
         If this is a new server setup, you may set a custom encryption key
@@ -40,7 +40,7 @@
         <old></old>
         <new></new>
        -->  
-      <!-- Openfire will generate a unique key on first startup -->
+      <!-- Openfire will generate a unique key on first startup -->  
       <current></current> 
     </key>  
     <property> 

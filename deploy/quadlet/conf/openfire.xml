@@ -23,49 +23,25 @@
     </defaultProvider>
   </database>
   -->  
-  <!-- Embedded database (development only) -->
-  <connectionProvider>
-    <className>org.jivesoftware.database.EmbeddedConnectionProvider</className>
-  </connectionProvider>
-
-  <!-- Disable RSS feeds and update checks (airgapped-friendly) -->
-  <rss>
-    <enabled>false</enabled>
-  </rss>
-  <update>
-    <service>
-      <enabled>false</enabled>
-    </service>
-    <notify>
-      <admins>false</admins>
-    </notify>
-  </update>
-
-  <locale>en</locale>
-  <fqdn>localhost</fqdn>
-
-  <!-- Autosetup: runs once on first start, then replaces itself with <setup>true</setup> -->
-  <autosetup>
-    <run>true</run>
-    <locale>en</locale>
-    <xmpp>
-      <domain>localhost</domain>
-      <fqdn>localhost</fqdn>
-    </xmpp>
-    <encryption>
-      <algorithm>AES</algorithm>
-    </encryption>
-    <database>
-      <mode>embedded</mode>
-    </database>
-    <profile>
-      <mode>default</mode>
-    </profile>
-    <admin>
-      <email>admin@localhost</email>
-      <password>admin</password>
-    </admin>
-  </autosetup>  
+  <!-- Embedded database (development only) -->  
+  <connectionProvider> 
+    <className>org.jivesoftware.database.EmbeddedConnectionProvider</className> 
+  </connectionProvider>  
+  <!-- Disable RSS feeds and update checks (airgapped-friendly) -->  
+  <rss> 
+    <enabled>false</enabled> 
+  </rss>  
+  <update> 
+    <service> 
+      <enabled>false</enabled> 
+    </service>  
+    <notify> 
+      <admins>false</admins> 
+    </notify> 
+  </update>  
+  <locale>en</locale>  
+  <fqdn>localhost</fqdn>  
+  <!-- Autosetup: runs once on first start, then replaces itself with <setup>true</setup> -->  
   <!-- TLS/SSL Configuration (configure later) -->  
   <!--
   <ssl>
@@ -75,5 +51,6 @@
     <truststore>/opt/openfire/resources/security/truststore</truststore>
     <truststorePassword>changeit</truststorePassword>
   </ssl>
-  --> 
+  -->  
+  <setup>true</setup>
 </jive>
