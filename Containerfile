@@ -6,6 +6,8 @@
 # Override version at build time:  --build-arg OPENFIRE_VERSION=5.1.0
 FROM registry.access.redhat.com/ubi9/ubi:9.5 AS builder
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ARG OPENFIRE_VERSION=5.0.3
 ARG OPENFIRE_DOWNLOAD_BASE_URL=https://github.com/igniterealtime/Openfire/releases/download
 
@@ -21,9 +23,9 @@ COPY plugins/ /tmp/plugins/
 # - Replaces log4j2.xml to route all logs to stdout for container log drivers
 # - Copies default openfire.xml with autosetup for zero-config first boot
 # - Installs any plugin JARs placed in plugins/ before build
-RUN --mount=type=bind,target=/ctx \
+RUN --mount=type=bind,target=/src \
     VERSION_FILE=$(echo "${OPENFIRE_VERSION}" | tr '.' '_') && \
-    test -f /ctx/openfire_${VERSION_FILE}.tar.gz || { \
+    test -f "/src/openfire_${VERSION_FILE}.tar.gz" || { \
       echo ""; \
       echo "ERROR: openfire_${VERSION_FILE}.tar.gz not found in build context."; \
       echo "       Download it first:"; \
@@ -32,7 +34,7 @@ RUN --mount=type=bind,target=/ctx \
       echo ""; \
       exit 1; \
     } && \
-    tar xzf /ctx/openfire_${VERSION_FILE}.tar.gz -C /opt/ && \
+    tar xzf "/src/openfire_${VERSION_FILE}.tar.gz" -C /opt/ && \
     rm -rf /opt/openfire/jre /opt/openfire/documentation && \
     cp /tmp/log4j2-container.xml /opt/openfire/lib/log4j2.xml && \
     cp /tmp/openfire.xml /opt/openfire/conf/openfire.xml && \
