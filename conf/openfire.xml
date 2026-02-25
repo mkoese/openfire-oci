@@ -11,9 +11,19 @@
     <className>org.jivesoftware.database.EmbeddedConnectionProvider</className>
   </connectionProvider>
 
+  <!-- Disable outbound calls to igniterealtime.org (blog feed, update checks).
+       Required in airgapped/restricted-egress environments to avoid UnknownHostException warnings. -->
   <rss>
     <enabled>false</enabled>
   </rss>
+  <update>
+    <service>
+      <enabled>false</enabled>
+    </service>
+    <notify>
+      <admins>false</admins>
+    </notify>
+  </update>
 
   <locale>en</locale>
   <fqdn>localhost</fqdn>
