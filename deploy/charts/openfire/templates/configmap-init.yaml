@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-openfire-init
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "openfire.labels" . | nindent 4 }}
+data:
+  init.sh: |
+    #!/bin/sh
+    set -e
+
+    SERVICE_HOST="{{ .Release.Name }}-openfire.{{ .Values.namespace.name }}.svc.cluster.local"
+
+    # Copy defaults into writable volumes
+    rm -rf /plugins/lost+found /data/lost+found
+    cp -rn /opt/openfire/plugins/*.jar /plugins/ 2>/dev/null || true
+    cp -rn /opt/openfire/conf/* /conf/ 2>/dev/null || true
+    cp /conf-secret/* /conf/
+    cp -rn /opt/openfire/resources/security/* /security/ 2>/dev/null || true
+
+    {{- if .Values.tls.secretName }}
+    # Import TLS certificate from Kubernetes secret
+    openssl pkcs12 -export \
+      -in /tls/tls.crt -inkey /tls/tls.key \
+      -out /tmp/tls.p12 -name "${SERVICE_HOST}" \
+      -passout "pass:${KEYSTORE_PASS}"
+    keytool -importkeystore \
+      -srckeystore /tmp/tls.p12 -srcstoretype PKCS12 -srcstorepass "${KEYSTORE_PASS}" \
+      -destkeystore /security/keystore -deststorepass "${KEYSTORE_PASS}" -destkeypass "${KEYSTORE_PASS}" \
+      -noprompt 2>/dev/null || true
+    rm -f /tmp/tls.p12
+    echo "Keystore: imported TLS certificate from secret"
+
+    {{- else }}
+    # Generate self-signed cert (FIPS-safe, bypasses SHA1PRNG)
+    if ! keytool -list -keystore /security/keystore -storepass "${KEYSTORE_PASS}" 2>/dev/null | grep -q PrivateKeyEntry; then
+      keytool -genkeypair \
+        -alias "${SERVICE_HOST}" \
+        -keyalg RSA -keysize 2048 -sigalg SHA256withRSA \
+        -validity 1825 \
+        -dname "CN=${SERVICE_HOST}, O=Openfire" \
+        -ext "san=dns:${SERVICE_HOST},dns:localhost" \
+        -keystore /security/keystore \
+        -storepass "${KEYSTORE_PASS}" -keypass "${KEYSTORE_PASS}" 2>/dev/null || true
+      echo "Keystore: generated self-signed certificate for ${SERVICE_HOST}"
+    else
+      echo "Keystore: certificate already exists, skipping"
+    fi
+
+    {{- end }}
+    {{- if .Values.tls.trustedCAConfigMap }}
+    # Import trusted CA certificates (skip duplicates)
+    keytool -list -rfc -keystore /security/truststore -storepass "${KEYSTORE_PASS}" 2>/dev/null > /tmp/existing.pem
+    imported=0 skipped=0
+
+    for src in /trusted-ca/*.crt /trusted-ca/*.pem; do
+      [ -f "$src" ] || continue
+      total=$(grep -c "BEGIN CERTIFICATE" "$src")
+      echo "Processing ${total} certificates from $(basename "$src")"
+
+      awk '/-----BEGIN CERTIFICATE-----/{f="/tmp/ca-"(++n)".pem"} f{print > f} /-----END CERTIFICATE-----/{f=""}' "$src"
+      for part in /tmp/ca-*.pem; do
+        [ -f "$part" ] || continue
+        sig=$(sed -n '2p' "$part")
+
+        if grep -qF "$sig" /tmp/existing.pem; then
+          skipped=$((skipped + 1))
+        else
+          info=$(keytool -printcert -file "$part" 2>/dev/null)
+          owner=$(echo "$info" | grep "Owner:" | head -1 | sed 's/Owner: //')
+          serial=$(echo "$info" | grep "Serial number:" | awk '{print $3}')
+          keytool -importcert -noprompt \
+            -alias "trusted-ca-${imported}" \
+            -file "$part" \
+            -keystore /security/truststore \
+            -storepass "${KEYSTORE_PASS}" 2>/dev/null && echo "  Imported: ${owner} | Serial=${serial}"
+          imported=$((imported + 1))
+        fi
+      done
+      rm -f /tmp/ca-*.pem
+    done
+
+    rm -f /tmp/existing.pem
+    echo "Truststore: ${imported} imported, ${skipped} skipped (already present)"
+    {{- end }}

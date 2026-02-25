@@ -11,8 +11,8 @@
     <className>org.jivesoftware.database.EmbeddedConnectionProvider</className>
   </connectionProvider>
 
-  <!-- Disable outbound calls to igniterealtime.org (blog feed, update checks).
-       Required in airgapped/restricted-egress environments to avoid UnknownHostException warnings. -->
+  <!-- Migrated to database on first boot. Disables outbound calls to igniterealtime.org
+       (blog feed, update checks). Required in airgapped/restricted-egress environments. -->
   <rss>
     <enabled>false</enabled>
   </rss>
@@ -26,6 +26,7 @@
   </update>
 
   <locale>en</locale>
+  <!-- For Kubernetes, the secret.yaml template overrides this with the service FQDN -->
   <fqdn>localhost</fqdn>
 
   <!-- Autosetup: runs once on first start, then replaces itself with <setup>true</setup> -->

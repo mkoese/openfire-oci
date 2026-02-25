@@ -53,21 +53,26 @@ spec:
                 - ALL
           resources:
             limits:
+              cpu: "1"
+              memory: 128Mi
+            requests:
               cpu: 100m
               memory: 64Mi
-            requests:
-              cpu: 50m
-              memory: 32Mi
-          command:
-            - sh
-            - -c
-            - |
-              rm -rf /plugins/lost+found /data/lost+found
-              cp -rn /opt/openfire/plugins/*.jar /plugins/ 2>/dev/null || true
-              cp -rn /opt/openfire/conf/* /conf/ 2>/dev/null || true
-              cp /conf-secret/* /conf/
-              cp -rn /opt/openfire/resources/security/* /security/ 2>/dev/null || true
+          env:
+            - name: KEYSTORE_PASS
+              {{- if .Values.tls.keystorePasswordSecret }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.tls.keystorePasswordSecret }}
+                  key: keystore-password
+              {{- else }}
+              value: changeit
+              {{- end }}
+          command: ["sh", "/scripts/init.sh"]
           volumeMounts:
+            - name: openfire-init-script
+              mountPath: /scripts
+              readOnly: true
             - name: openfire-conf-secret
               mountPath: /conf-secret
               readOnly: true
@@ -79,6 +84,16 @@ spec:
               mountPath: /data
             - name: openfire-security
               mountPath: /security
+            {{- if .Values.tls.secretName }}
+            - name: openfire-tls
+              mountPath: /tls
+              readOnly: true
+            {{- end }}
+            {{- if .Values.tls.trustedCAConfigMap }}
+            - name: openfire-trusted-ca
+              mountPath: /trusted-ca
+              readOnly: true
+            {{- end }}
       containers:
         - name: openfire
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -148,9 +163,13 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
+        - name: openfire-init-script
+          configMap:
+            name: {{ .Release.Name }}-openfire-init
+            defaultMode: 0555
         - name: openfire-conf-secret
           secret:
-            secretName: {{ .Release.Name }}-openfire-conf
+            secretName: openfire-conf
         - name: openfire-conf
           emptyDir: {}
         - name: openfire-data
@@ -161,5 +180,15 @@ spec:
             claimName: {{ .Release.Name }}-openfire-plugins
         - name: openfire-security
           emptyDir: {}
+        {{- if .Values.tls.secretName }}
+        - name: openfire-tls
+          secret:
+            secretName: {{ .Values.tls.secretName }}
+        {{- end }}
+        {{- if .Values.tls.trustedCAConfigMap }}
+        - name: openfire-trusted-ca
+          configMap:
+            name: {{ .Values.tls.trustedCAConfigMap }}
+        {{- end }}
         - name: tmp
           emptyDir: {}

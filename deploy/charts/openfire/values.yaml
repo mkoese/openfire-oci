@@ -60,6 +60,16 @@ javaOpts:
   - -Dlog4j2.formatMsgNoLookups=true      # CVE-2021-44228 (Log4Shell) mitigation
   - -Djava.security.egd=file:/dev/urandom # non-blocking entropy for faster TLS handshakes
 
+tls:
+  # Kubernetes secret containing key "keystore-password". If empty, uses Java default.
+  keystorePasswordSecret: ""
+  # Kubernetes TLS secret (tls.crt, tls.key) from an official CA.
+  # When empty, init container generates a self-signed certificate.
+  secretName: ""
+  # ConfigMap with trusted CA certificates (e.g., config-trusted-cabundle).
+  # Each key with a .crt or .pem extension is imported into the truststore.
+  trustedCAConfigMap: ""
+
 resources:
   limits:
     memory: 512Mi

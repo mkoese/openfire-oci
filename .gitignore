@@ -7,7 +7,8 @@ plugins/*.jar
 
 # Secrets (never commit real secrets)
 secret*
-!deploy/charts/openfire/templates/secret.yaml
+!deploy/charts/openfire/templates/secret-conf.yaml
+!deploy/charts/openfire/templates/secret-keystore.yaml
 
 # IDE
 .idea/
