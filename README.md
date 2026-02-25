@@ -184,19 +184,13 @@ helm template openfire ./deploy/charts/openfire \
 # Allow openfire namespace to pull images from openfire-build
 oc policy add-role-to-group system:image-puller \
   system:serviceaccounts:openfire -n openfire-build
+
+# Allow pipeline SA to push images to the internal registry
+oc policy add-role-to-user system:image-builder \
+  system:serviceaccount:openfire-build:pipeline -n openfire-build
 ```
 
-### 2. Create registry credentials
-
-```bash
-oc create secret docker-registry openfire-registry-credentials \
-  --docker-server=image-registry.openshift-image-registry.svc:5000 \
-  --docker-username=$(oc whoami) \
-  --docker-password=$(oc whoami -t) \
-  -n openfire-build
-```
-
-### 3. Build with OpenShift Pipelines (requires Pipelines Operator)
+### 2. Build with OpenShift Pipelines (requires Pipelines Operator)
 
 ```bash
 # Trigger a pipeline run
@@ -208,7 +202,7 @@ helm template openfire-build ./deploy/charts/openfire-build \
 oc -n openfire-build get pipelinerun -w
 ```
 
-### 4. Push local image to OpenShift (alternative, no Pipelines Operator needed)
+### 3. Push local image to OpenShift (alternative, no Pipelines Operator needed)
 
 Expose the internal registry (one-time):
 
@@ -226,7 +220,7 @@ podman tag openfire-oci:5.0.3 $REGISTRY/openfire-build/openfire-oci:5.0.3
 podman push $REGISTRY/openfire-build/openfire-oci:5.0.3
 ```
 
-### 5. Rollout and manage
+### 4. Rollout and manage
 
 ```bash
 # Restart after config or image changes
@@ -244,7 +238,7 @@ helm template openfire-build ./deploy/charts/openfire-build \
   --show-only templates/pipelinerun.yaml | oc create -f -
 ```
 
-### 6. Logs
+### 5. Logs
 
 ```bash
 # Follow openfire pod logs

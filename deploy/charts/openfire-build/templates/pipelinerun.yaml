@@ -25,7 +25,4 @@ spec:
           resources:
             requests:
               storage: {{ .Values.workspace.storageSize }}
-    - name: dockerconfig
-      secret:
-        secretName: {{ .Values.registry.secretName }}
 {{- end }}

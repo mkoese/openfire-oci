@@ -17,9 +17,6 @@ openfire:
 workspace:
   storageSize: 1Gi
 
-registry:
-  secretName: openfire-registry-credentials
-
 plugins:
   - name: userstatus
     url: https://igniterealtime.org/projects/openfire/plugins/1.3.0/userstatus.jar

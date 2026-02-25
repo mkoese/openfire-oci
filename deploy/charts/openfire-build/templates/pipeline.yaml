@@ -19,7 +19,6 @@ spec:
       default: {{ .Values.image.tag | quote }}
   workspaces:
     - name: shared-workspace
-    - name: dockerconfig
   tasks:
     - name: fetch-source
       taskRef:
@@ -95,8 +94,6 @@ spec:
       workspaces:
         - name: source
           workspace: shared-workspace
-        - name: dockerconfig
-          workspace: dockerconfig
       params:
         - name: IMAGE
           value: $(params.image-name):$(params.image-tag)
