@@ -72,8 +72,10 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
-    # Allow HTTPS (plugin downloads, updates)
+    # Allow HTTP/HTTPS (plugin downloads, updates)
     - ports:
+        - protocol: TCP
+          port: 80
         - protocol: TCP
           port: 443
     # Allow database connections (PostgreSQL)

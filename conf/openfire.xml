@@ -11,6 +11,10 @@
     <className>org.jivesoftware.database.EmbeddedConnectionProvider</className>
   </connectionProvider>
 
+  <rss>
+    <enabled>false</enabled>
+  </rss>
+
   <locale>en</locale>
   <fqdn>localhost</fqdn>
 
