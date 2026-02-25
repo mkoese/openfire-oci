@@ -19,8 +19,8 @@ spec:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
 {{- end }}
----
 {{- if .Values.routes.bosh.enabled }}
+---
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:

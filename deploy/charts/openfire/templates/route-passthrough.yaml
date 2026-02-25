@@ -18,8 +18,8 @@ spec:
   tls:
     termination: passthrough
 {{- end }}
----
 {{- if .Values.routes.boshSsl.enabled }}
+---
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
