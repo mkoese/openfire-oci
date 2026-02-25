@@ -252,4 +252,4 @@ helm template openfire ./deploy/charts/openfire \
 
 ## License
 
-This project is licensed under the [GPL-3.0 License](LICENSE). Copyright 2026 Mikail Koese.
+This project is licensed under the [Apache License 2.0](LICENSE). Copyright 2026 Mikail Koese.
