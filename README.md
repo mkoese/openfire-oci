@@ -6,7 +6,7 @@ Openfire XMPP server on Red Hat UBI9 OpenJDK 17.
 
 | | |
 |---|---|
-| **Base image** | `ubi9/openjdk-17-runtime:1.20` |
+| **Base image** | `ubi9/openjdk-17-runtime:1.24` |
 | **Image size** | ~478 MB (89% efficiency) |
 | **Openfire** | 5.0.3 |
 | **Java** | OpenJDK 17 |
@@ -93,7 +93,7 @@ Optionally pre-pull base images to speed up local builds:
 
 ```bash
 podman pull registry.access.redhat.com/ubi9/ubi:9.5
-podman pull registry.access.redhat.com/ubi9/openjdk-17-runtime:1.20
+podman pull registry.access.redhat.com/ubi9/openjdk-17-runtime:1.24
 ```
 
 For air-gapped environments, download all artifacts on a connected machine:
@@ -101,7 +101,7 @@ For air-gapped environments, download all artifacts on a connected machine:
 ```bash
 # Base images (skopeo -- no daemon required)
 skopeo copy docker://registry.access.redhat.com/ubi9/ubi:9.5 docker-archive:ubi9.tar
-skopeo copy docker://registry.access.redhat.com/ubi9/openjdk-17-runtime:1.20 docker-archive:ubi9-openjdk-17-runtime.tar
+skopeo copy docker://registry.access.redhat.com/ubi9/openjdk-17-runtime:1.24 docker-archive:ubi9-openjdk-17-runtime.tar
 
 # Openfire tarball and plugins (same curl commands as above)
 ```
@@ -111,7 +111,7 @@ Transfer all files to the air-gapped machine, then load into a local registry:
 ```bash
 skopeo login --tls-verify=false registry.example.com
 skopeo copy --dest-tls-verify=false docker-archive:ubi9.tar docker://registry.example.com/ubi9/ubi:9.5
-skopeo copy --dest-tls-verify=false docker-archive:ubi9-openjdk-17-runtime.tar docker://registry.example.com/ubi9/openjdk-17-runtime:1.20
+skopeo copy --dest-tls-verify=false docker-archive:ubi9-openjdk-17-runtime.tar docker://registry.example.com/ubi9/openjdk-17-runtime:1.24
 ```
 
 ### Podman (local)

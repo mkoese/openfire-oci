@@ -44,7 +44,7 @@ RUN --mount=type=bind,target=/src \
 # ── Stage 2: Runtime ─────────────────────────────────────────────────────────
 # Minimal runtime image. Only one filesystem layer is added on top of the base
 # (the COPY below). All other instructions are metadata-only.
-FROM registry.access.redhat.com/ubi9/openjdk-17-runtime:1.20
+FROM registry.access.redhat.com/ubi9/openjdk-17-runtime:1.24
 
 ARG OPENFIRE_VERSION=5.0.3
 
