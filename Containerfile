@@ -4,7 +4,7 @@
 #
 # Place openfire_<VERSION>.tar.gz (dots replaced with underscores) in build context.
 # Override version at build time:  --build-arg OPENFIRE_VERSION=5.1.0
-FROM registry.access.redhat.com/ubi9/ubi:9.5 AS builder
+FROM registry.access.redhat.com/ubi9/ubi:9.7 AS builder
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
