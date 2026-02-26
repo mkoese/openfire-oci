@@ -1,0 +1,70 @@
+root = true
+
+# Default: UTF-8, LF line endings, final newline (POSIX), trim trailing whitespace
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# --- Markup & Config ---
+
+# YAML: 2-space (YAML spec recommendation, Kubernetes/Helm/Ansible convention)
+[*.{yml,yaml}]
+indent_size = 2
+
+# XML: 2-space (Red Hat / JBoss convention for OpenShift and Java EE configs)
+[*.xml]
+indent_size = 2
+
+# JSON: 2-space (npm/node ecosystem convention, prettier default)
+[*.json]
+indent_size = 2
+
+# Markdown: preserve trailing whitespace (two trailing spaces = <br> line break per CommonMark spec)
+[*.md]
+trim_trailing_whitespace = false
+
+# --- Containers & Infrastructure ---
+
+# Containerfile/Dockerfile: 2-space (Dockerfile community convention, hadolint default)
+[{Containerfile,Dockerfile}]
+indent_size = 2
+
+# Terraform: 2-space (enforced by terraform fmt, HashiCorp style)
+[*.{tf,tfvars}]
+indent_size = 2
+
+# Quadlet/systemd units: tab indent (INI format convention, systemd documentation)
+[*.container]
+indent_style = tab
+
+# --- Languages ---
+
+# Shell: 2-space (Google Shell Style Guide, ShellCheck recommendation)
+[*.{sh,bash}]
+indent_size = 2
+
+# Go: tab indent (enforced by gofmt, Go specification)
+[*.go]
+indent_style = tab
+
+# Java: 4-space (Red Hat / OpenJDK convention, Google Java Style Guide)
+[*.java]
+indent_size = 4
+
+# Python: 4-space (PEP 8 standard)
+[*.py]
+indent_size = 4
+
+# C/C++: 4-space (LLVM/clang-format default style)
+[*.{c,h,cpp,hpp}]
+indent_size = 4
+
+# --- Build ---
+
+# Makefile: tab indent (required by make, POSIX specification)
+[Makefile]
+indent_style = tab

@@ -1,0 +1,7 @@
+# Force LF line endings on all text files, auto-detect binaries
+* text=auto eol=lf
+
+# Files that git may misdetect as text (override auto-detection)
+*.pdf binary
+*.pb binary
+*.bmp binary
