@@ -72,7 +72,7 @@ tls:
 
 resources:
   limits:
-    memory: 512Mi
+    memory: 768Mi
   requests:
-    cpu: 100m
-    memory: 256Mi
+    cpu: 250m
+    memory: 512Mi
