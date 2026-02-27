@@ -17,7 +17,7 @@ variables:
 
 build-and-push:
   image:
-    name: registry.access.redhat.com/ubi9/buildah:9.5
+    name: registry.access.redhat.com/ubi9/buildah:9.7
     entrypoint: [""]
   variables:
     STORAGE_DRIVER: vfs

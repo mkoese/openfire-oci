@@ -66,7 +66,7 @@ spec:
         steps:
           {{- if .Values.plugins }}
           - name: download-plugins
-            image: registry.access.redhat.com/ubi9/ubi-minimal:9.5
+            image: registry.access.redhat.com/ubi9/ubi-minimal:9.7
             volumeMounts:
               - name: plugin-list
                 mountPath: /etc/openfire-plugins
@@ -81,7 +81,7 @@ spec:
               done < /etc/openfire-plugins/plugins.txt
           {{- end }}
           - name: download-openfire
-            image: registry.access.redhat.com/ubi9/ubi-minimal:9.5
+            image: registry.access.redhat.com/ubi9/ubi-minimal:9.7
             script: |
               #!/bin/sh
               cd $(workspaces.source.path)
