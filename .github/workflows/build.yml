@@ -34,7 +34,7 @@ jobs:
       IMAGE_TAG: ${{ inputs.image-tag || '' }}
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: download-plugins
         run: |

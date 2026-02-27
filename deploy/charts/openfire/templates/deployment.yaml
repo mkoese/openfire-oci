@@ -42,6 +42,8 @@ spec:
                 topologyKey: kubernetes.io/hostname
       securityContext:
         runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
         - name: init-conf
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

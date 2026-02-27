@@ -28,7 +28,7 @@ data:
     keytool -importkeystore \
       -srckeystore /tmp/tls.p12 -srcstoretype PKCS12 -srcstorepass "${KEYSTORE_PASS}" \
       -destkeystore /security/keystore -deststorepass "${KEYSTORE_PASS}" -destkeypass "${KEYSTORE_PASS}" \
-      -noprompt 2>/dev/null || true
+      -noprompt 2>/dev/null
     rm -f /tmp/tls.p12
     echo "Keystore: imported TLS certificate from secret"
 
@@ -42,7 +42,7 @@ data:
         -dname "CN=${SERVICE_HOST}, O=Openfire" \
         -ext "san=dns:${SERVICE_HOST},dns:localhost" \
         -keystore /security/keystore \
-        -storepass "${KEYSTORE_PASS}" -keypass "${KEYSTORE_PASS}" 2>/dev/null || true
+        -storepass "${KEYSTORE_PASS}" -keypass "${KEYSTORE_PASS}" 2>/dev/null
       echo "Keystore: generated self-signed certificate for ${SERVICE_HOST}"
     else
       echo "Keystore: certificate already exists, skipping"
