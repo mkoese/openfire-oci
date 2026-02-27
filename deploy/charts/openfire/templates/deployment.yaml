@@ -135,19 +135,22 @@ spec:
             capabilities:
               drop:
                 - ALL
+          startupProbe:
+            httpGet:
+              path: /login.jsp
+              port: admin
+            periodSeconds: 5
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /login.jsp
               port: admin
-            initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
-            httpGet:
-              path: /login.jsp
-              port: admin
-            initialDelaySeconds: 5
+            tcpSocket:
+              port: xmpp
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
