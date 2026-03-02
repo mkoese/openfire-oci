@@ -14,7 +14,9 @@ data:
 
     # Copy defaults into writable volumes
     rm -rf /plugins/lost+found /data/lost+found
-    cp -rn /opt/openfire/plugins/*.jar /plugins/ 2>/dev/null || true
+    # Copy all bundled plugin artifacts (both .jar files and directory plugins,
+    # such as the admin plugin in Openfire 4.8.x) into the persistent volume.
+    cp -rn /opt/openfire/plugins/. /plugins/ 2>/dev/null || true
     cp -rn /opt/openfire/conf/* /conf/ 2>/dev/null || true
     cp /conf-secret/* /conf/
     cp -rn /opt/openfire/resources/security/* /security/ 2>/dev/null || true

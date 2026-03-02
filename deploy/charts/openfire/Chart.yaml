@@ -2,4 +2,4 @@ apiVersion: v2
 name: openfire
 description: Openfire XMPP server on UBI9
 version: 0.1.0
-appVersion: "5.0.3"
+appVersion: "4.8.2"

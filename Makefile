@@ -1,7 +1,7 @@
 # Local development helpers for a local OpenShift cluster (for example CRC).
 # This Makefile is intentionally not used by CI/CD pipelines.
 
-OPENFIRE_VERSION ?= 5.0.3
+OPENFIRE_VERSION ?= 4.8.2
 OPENFIRE_DOWNLOAD_BASE_URL ?= https://github.com/igniterealtime/Openfire/releases/download
 
 IMAGE_NAME ?= openfire-oci
@@ -21,9 +21,11 @@ download-plugins:
 
 download-openfire:
 	@VERSION_FILE=$$(echo "$(OPENFIRE_VERSION)" | tr '.' '_'); \
+	PRIMARY_URL="$(OPENFIRE_DOWNLOAD_BASE_URL)/v$(OPENFIRE_VERSION)/openfire_$${VERSION_FILE}.tar.gz"; \
+	FALLBACK_URL="https://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_$${VERSION_FILE}.tar.gz"; \
 	echo "Downloading Openfire $(OPENFIRE_VERSION)"; \
-	curl -fsSL -o "openfire_$${VERSION_FILE}.tar.gz" \
-		"$(OPENFIRE_DOWNLOAD_BASE_URL)/v$(OPENFIRE_VERSION)/openfire_$${VERSION_FILE}.tar.gz"
+	curl -fsSL -o "openfire_$${VERSION_FILE}.tar.gz" "$${PRIMARY_URL}" || \
+		curl -fsSL -o "openfire_$${VERSION_FILE}.tar.gz" "$${FALLBACK_URL}"
 
 prepare: download-plugins download-openfire
 

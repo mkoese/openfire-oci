@@ -8,7 +8,7 @@ Openfire XMPP server on Red Hat UBI9 OpenJDK 17.
 |---|---|
 | **Base image** | `ubi9/openjdk-17-runtime:1.24` |
 | **Image size** | ~478 MB (89% efficiency) |
-| **Openfire** | 5.0.3 |
+| **Openfire** | 4.8.2 |
 | **Java** | OpenJDK 17 |
 | **User** | 1001:0 (OpenShift arbitrary UID compatible) |
 
@@ -65,7 +65,8 @@ update:
   rssEnabled: false
 ```
 
-These settings are written into the generated `openfire.xml` secret. If Openfire was already initialized with persistent data, the existing DB properties may still apply until you reset/update those stored properties.
+These settings are written into the generated `openfire.xml` secret. On Openfire `4.8.x`, this maps to the hyphenated runtime properties `update.service-enabled` and `update.notify-admins`.
+If Openfire was already initialized with persistent data, the existing DB properties may still apply until you reset/update those stored properties.
 
 ---
 
@@ -79,10 +80,12 @@ Download the Openfire tarball and plugins before building. CI/CD pipelines (GitH
 
 ```bash
 # Openfire tarball
-VERSION=5.0.3
+VERSION=4.8.2
 VERSION_FILE=$(echo "${VERSION}" | tr '.' '_')
-curl -fsSL -o "openfire_${VERSION_FILE}.tar.gz" \
-  "https://github.com/igniterealtime/Openfire/releases/download/v${VERSION}/openfire_${VERSION_FILE}.tar.gz"
+PRIMARY_URL="https://github.com/igniterealtime/Openfire/releases/download/v${VERSION}/openfire_${VERSION_FILE}.tar.gz"
+FALLBACK_URL="https://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_${VERSION_FILE}.tar.gz"
+curl -fsSL -o "openfire_${VERSION_FILE}.tar.gz" "${PRIMARY_URL}" || \
+  curl -fsSL -o "openfire_${VERSION_FILE}.tar.gz" "${FALLBACK_URL}"
 
 # Plugins (optional -- build succeeds without them)
 mkdir -p plugins
@@ -222,7 +225,7 @@ podman run -d --name openfire \
   -p 9090:9090 -p 9091:9091 \
   -p 5222:5222 -p 5223:5223 \
   -v $(pwd)/deploy/quadlet/conf:/opt/openfire/conf:Z \
-  openfire-oci:5.0.3
+  openfire-oci:4.8.2
 ```
 
 Open http://localhost:9090 and log in with `admin` / `admin`.
@@ -277,7 +280,7 @@ helm template openfire ./deploy/charts/openfire \
 | Stop | `sudo systemctl stop openfire.service` |
 | Start | `sudo systemctl start openfire.service` |
 | Restart | `sudo systemctl restart openfire.service` |
-| Redeploy (new image) | `sudo systemctl stop openfire.service && podman pull openfire-oci:5.0.3 && sudo systemctl start openfire.service` |
+| Redeploy (new image) | `sudo systemctl stop openfire.service && podman pull openfire-oci:4.8.2 && sudo systemctl start openfire.service` |
 
 ### OpenShift / Kubernetes
 

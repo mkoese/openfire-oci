@@ -4,7 +4,7 @@ namespace:
 
 image:
   repository: openfire-oci
-  tag: "5.0.3"
+  tag: "4.8.2"
   pullPolicy: IfNotPresent
 
 timezone: Europe/Zurich
