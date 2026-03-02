@@ -89,6 +89,28 @@ userstatus|https://igniterealtime.org/projects/openfire/plugins/1.3.0/userstatus
 
 Browse available plugins at https://www.igniterealtime.org/projects/openfire/plugins.jsp. Plugin JARs are git-ignored.
 
+### Makefile (local OpenShift development)
+
+For local development workflows against a local OpenShift cluster (for example CRC), use the repository `Makefile`.
+It mirrors pipeline plugin download logic (`plugins.txt` format `name|url`) and is intended for local interaction only.
+
+```bash
+# Download plugins from plugins.txt (name|url)
+make download-plugins
+
+# Download Openfire tarball for OPENFIRE_VERSION
+make download-openfire
+
+# Download both plugins and tarball
+make prepare
+
+# Build locally with Docker
+make docker-build
+
+# Deploy to local OpenShift
+make deploy-local
+```
+
 Optionally pre-pull base images to speed up local builds:
 
 ```bash
