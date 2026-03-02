@@ -104,8 +104,11 @@ make download-openfire
 # Download both plugins and tarball
 make prepare
 
-# Build locally with Docker
-make docker-build
+# Build locally (prefers Podman, falls back to Docker)
+make build
+
+# Build and push image to the local OpenShift registry (openfire-build namespace)
+make push-local-image
 
 # Deploy to local OpenShift
 make deploy-local
@@ -224,8 +227,7 @@ sudo firewall-cmd --reload
 
 ```bash
 # Allow openfire namespace to pull images from openfire-build
-oc policy add-role-to-group system:image-puller \
-  system:serviceaccounts:openfire -n openfire-build
+oc policy add-role-to-group system:image-puller system:serviceaccounts:openfire -n openfire-build
 
 # Apply openfire namespace and deployment resources
 helm template openfire ./deploy/charts/openfire \
