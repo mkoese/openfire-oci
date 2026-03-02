@@ -13,3 +13,9 @@ update:
   serviceEnabled: false
   notifyAdmins: false
   rssEnabled: false
+
+restApi:
+  autoEnable: true
+  allowWildcardsInExcludes: true
+  httpAuth: basic
+  serviceLoggingEnabled: false

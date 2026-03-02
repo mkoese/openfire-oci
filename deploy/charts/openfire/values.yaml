@@ -79,6 +79,21 @@ update:
   # Controls Openfire RSS feed fetches (also outbound).
   rssEnabled: false
 
+restApi:
+  # When true, write REST API plugin properties into openfire.xml.
+  # This requires the REST API plugin JAR to be present in /opt/openfire/plugins.
+  autoEnable: false
+  # Required by the REST API plugin on newer Openfire versions to avoid login redirects.
+  allowWildcardsInExcludes: true
+  # Authentication mode: basic (admin user/pass) or secret (Authorization header secret).
+  httpAuth: basic
+  # Optional shared secret when httpAuth=secret. If empty, plugin can auto-generate one.
+  secret: ""
+  # Optional source IP allowlist for REST API requests.
+  allowedIPs: []
+  # Enable request/response service logging inside the plugin.
+  serviceLoggingEnabled: false
+
 resources:
   limits:
     memory: 768Mi

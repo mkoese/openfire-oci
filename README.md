@@ -68,6 +68,21 @@ update:
 These settings are written into the generated `openfire.xml` secret. On Openfire `4.8.x`, this maps to the hyphenated runtime properties `update.service-enabled` and `update.notify-admins`.
 If Openfire was already initialized with persistent data, the existing DB properties may still apply until you reset/update those stored properties.
 
+To auto-enable the REST API plugin at startup (when the REST API plugin JAR is present), set:
+
+```yaml
+restApi:
+  autoEnable: true
+  allowWildcardsInExcludes: true
+  httpAuth: basic # or "secret"
+  # secret: "replace-me-when-using-secret-auth"
+  # allowedIPs:
+  #   - 10.0.0.10
+  serviceLoggingEnabled: false
+```
+
+This writes `plugin.restapi.*` properties into `openfire.xml`, including `plugin.restapi.enabled=true`.
+
 ---
 
 ## Build

@@ -4,6 +4,9 @@
   <adminConsole>
     <port>9090</port>
     <securePort>9091</securePort>
+    <access>
+      <allow-wildcards-in-excludes>true</allow-wildcards-in-excludes>
+    </access>
   </adminConsole>
 
   <connectionProvider>
@@ -29,6 +32,14 @@
     <service-enabled>false</service-enabled>
     <notify-admins>false</notify-admins>
   </update>
+
+  <plugin>
+    <restapi>
+      <enabled>true</enabled>
+      <httpAuth>basic</httpAuth>
+      <serviceLoggingEnabled>false</serviceLoggingEnabled>
+    </restapi>
+  </plugin>
 
   <locale>en</locale>
   <fqdn>openfire-openfire.openfire.svc.cluster.local</fqdn>
