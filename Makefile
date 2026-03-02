@@ -11,8 +11,10 @@ CONTAINER_ENGINE ?= $(shell if command -v podman >/dev/null 2>&1; then echo podm
 REGISTRY_HOST ?= $(shell oc registry info 2>/dev/null)
 IMAGE_NAMESPACE ?= openfire-build
 CLUSTER_IMAGE ?= $(REGISTRY_HOST)/$(IMAGE_NAMESPACE)/$(IMAGE_NAME):$(IMAGE_TAG)
+OPENFIRE_NAMESPACE ?= openfire
+RELEASE_NAME ?= openfire
 
-.PHONY: download-plugins download-openfire prepare build push-local-image deploy-local
+.PHONY: download-plugins download-openfire prepare build push-local-image clean clean-local deploy-local deploy-local-clean
 
 download-plugins:
 	@sh ./scripts/download-plugins.sh plugins.txt plugins
@@ -53,3 +55,20 @@ push-local-image: build
 deploy-local:
 	@helm template openfire ./deploy/charts/openfire \
 		-f ./deploy/charts/openfire/values-openshift.yaml | oc apply -f -
+
+clean:
+	@rm -f plugins/*.jar
+	@rm -f openfire_*.tar.gz
+	@if [ -n "$(CONTAINER_ENGINE)" ]; then \
+		$(CONTAINER_ENGINE) image rm "$(IMAGE)" >/dev/null 2>&1 || true; \
+	fi
+
+clean-local:
+	@oc scale deployment/"$(RELEASE_NAME)"-openfire -n "$(OPENFIRE_NAMESPACE)" --replicas=0 >/dev/null 2>&1 || true
+	@oc wait --for=delete pod -l app.kubernetes.io/instance="$(RELEASE_NAME)" -n "$(OPENFIRE_NAMESPACE)" --timeout=60s >/dev/null 2>&1 || true
+	@oc delete pvc -n "$(OPENFIRE_NAMESPACE)" \
+		"$(RELEASE_NAME)"-openfire-data \
+		"$(RELEASE_NAME)"-openfire-plugins \
+		--ignore-not-found=true
+
+deploy-local-clean: clean-local deploy-local

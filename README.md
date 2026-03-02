@@ -56,6 +56,17 @@ For production, mount your own `openfire.xml` containing either:
 - `<autosetup>` block -- first-run automatic setup (see `conf/openfire.xml` for the full example)
 - `<setup>true</setup>` -- already-configured instance (DB schema must exist)
 
+Helm chart users can control outbound update checks via values:
+
+```yaml
+update:
+  serviceEnabled: false
+  notifyAdmins: false
+  rssEnabled: false
+```
+
+These settings are written into the generated `openfire.xml` secret. If Openfire was already initialized with persistent data, the existing DB properties may still apply until you reset/update those stored properties.
+
 ---
 
 ## Build
@@ -81,9 +92,10 @@ while IFS='|' read -r name url; do
 done < plugins.txt
 ```
 
-`plugins.txt` format is `name|url` per line:
+`plugins.txt` format is `name|url` per line. Empty lines and lines starting with `#` are ignored:
 
 ```
+# Optional plugins for local and CI builds
 userstatus|https://igniterealtime.org/projects/openfire/plugins/1.3.0/userstatus.jar
 ```
 
@@ -110,8 +122,17 @@ make build
 # Build and push image to the local OpenShift registry (openfire-build namespace)
 make push-local-image
 
+# Clean local build artifacts (downloaded plugins/tarball and local image)
+make clean
+
 # Deploy to local OpenShift
 make deploy-local
+
+# Reset Openfire PVCs (destructive: removes embedded DB/plugins data)
+make clean-local
+
+# Reset Openfire PVCs and deploy clean
+make deploy-local-clean
 ```
 
 Optionally pre-pull base images to speed up local builds:

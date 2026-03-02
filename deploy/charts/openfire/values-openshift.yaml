@@ -8,3 +8,8 @@ routes:
     enabled: true
   bosh:
     enabled: true
+
+update:
+  serviceEnabled: false
+  notifyAdmins: false
+  rssEnabled: false

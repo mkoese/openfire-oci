@@ -7,9 +7,14 @@ PLUGIN_DIR="${2:-plugins}"
 mkdir -p "${PLUGIN_DIR}"
 
 while IFS='|' read -r name url || [ -n "${name}${url}" ]; do
-  [ -z "${name}" ] && continue
   # Remove CR from Windows CRLF line endings.
+  name="$(printf '%s' "${name}" | tr -d '\r')"
   url="$(printf '%s' "${url}" | tr -d '\r')"
+  # Skip empty and comment lines.
+  [ -z "${name}" ] && continue
+  case "${name}" in
+    \#*) continue ;;
+  esac
   echo "Downloading plugin: ${name} from ${url}"
   curl -fsSL -o "${PLUGIN_DIR}/${name}.jar" "${url}"
 done < "${PLUGIN_LIST_FILE}"

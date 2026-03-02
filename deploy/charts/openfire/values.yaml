@@ -70,6 +70,15 @@ tls:
   # Each key with a .crt or .pem extension is imported into the truststore.
   trustedCAConfigMap: ""
 
+update:
+  # Disables outbound update checks to igniterealtime.org.
+  # Keep disabled for air-gapped or restricted-egress clusters.
+  serviceEnabled: false
+  # Controls admin notifications for available updates.
+  notifyAdmins: false
+  # Controls Openfire RSS feed fetches (also outbound).
+  rssEnabled: false
+
 resources:
   limits:
     memory: 768Mi

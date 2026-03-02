@@ -19,6 +19,14 @@ data:
     cp /conf-secret/* /conf/
     cp -rn /opt/openfire/resources/security/* /security/ 2>/dev/null || true
 
+    # Keep deploys idempotent with embedded DB: once DB files exist on the
+    # persistent volume, disable autosetup so restarts/redeploys do not re-run
+    # first-boot initialization against existing data.
+    if [ -f /data/openfire.script ] || [ -f /data/openfire.properties ]; then
+      sed -i '0,/<run>true<\/run>/s//<run>false<\/run>/' /conf/openfire.xml
+      echo "Detected existing embedded DB files; autosetup run disabled"
+    fi
+
     {{- if .Values.tls.secretName }}
     # Import TLS certificate from Kubernetes secret
     openssl pkcs12 -export \
