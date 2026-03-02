@@ -65,7 +65,8 @@ update:
   rssEnabled: false
 ```
 
-These settings are written into the generated `openfire.xml` secret. If Openfire was already initialized with persistent data, the existing DB properties may still apply until you reset/update those stored properties.
+These settings are written into the generated `openfire.xml` secret. On Openfire `4.8.x`, this maps to the hyphenated runtime properties `update.service-enabled` and `update.notify-admins`.
+If Openfire was already initialized with persistent data, the existing DB properties may still apply until you reset/update those stored properties.
 
 ---
 

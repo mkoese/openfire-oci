@@ -17,12 +17,10 @@
     <enabled>false</enabled>
   </rss>
   <update>
-    <service>
-      <enabled>false</enabled>
-    </service>
-    <notify>
-      <admins>false</admins>
-    </notify>
+    <!-- Openfire 4.8.x expects hyphenated keys:
+         update.service-enabled / update.notify-admins -->
+    <service-enabled>false</service-enabled>
+    <notify-admins>false</notify-admins>
   </update>
 
   <locale>en</locale>
