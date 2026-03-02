@@ -38,12 +38,7 @@ jobs:
 
       - name: download-plugins
         run: |
-          mkdir -p plugins
-          while IFS='|' read -r name url; do
-            [ -z "$name" ] && continue
-            echo "Downloading plugin: $name from $url"
-            curl -fsSL -o "plugins/${name}.jar" "$url"
-          done < plugins.txt
+          sh ./scripts/download-plugins.sh plugins.txt plugins
 
       - name: download-openfire
         run: |

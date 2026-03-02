@@ -73,12 +73,9 @@ spec:
             script: |
               #!/bin/sh
               set -e
-              mkdir -p $(workspaces.source.path)/plugins
-              while IFS='|' read -r name url; do
-                [ -z "$name" ] && continue
-                echo "Downloading plugin: $name from $url"
-                curl -fsSL -o "$(workspaces.source.path)/plugins/${name}.jar" "$url"
-              done < /etc/openfire-plugins/plugins.txt
+              sh "$(workspaces.source.path)/scripts/download-plugins.sh" \
+                /etc/openfire-plugins/plugins.txt \
+                "$(workspaces.source.path)/plugins"
           {{- end }}
           - name: download-openfire
             image: registry.access.redhat.com/ubi9/ubi-minimal:9.7

@@ -12,12 +12,7 @@ CONTAINER_ENGINE ?= $(shell if command -v podman >/dev/null 2>&1; then echo podm
 .PHONY: download-plugins download-openfire prepare docker-build deploy-local
 
 download-plugins:
-	@mkdir -p plugins
-	@while IFS='|' read -r name url; do \
-		[ -z "$$name" ] && continue; \
-		echo "Downloading plugin: $$name from $$url"; \
-		curl -fsSL -o "plugins/$$name.jar" "$$url"; \
-	done < plugins.txt
+	@sh ./scripts/download-plugins.sh plugins.txt plugins
 
 download-openfire:
 	@VERSION_FILE=$$(echo "$(OPENFIRE_VERSION)" | tr '.' '_'); \
