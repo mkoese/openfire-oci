@@ -1,2 +1,3 @@
 userstatus|https://igniterealtime.org/projects/openfire/plugins/1.3.0/userstatus.jar
 restapi|https://www.igniterealtime.org/projects/openfire/plugins/1.11.0/restAPI.jar
+httpfileupload|https://www.igniterealtime.org/projects/openfire/plugins/1.4.2/httpfileupload.jar

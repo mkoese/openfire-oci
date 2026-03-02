@@ -13,8 +13,13 @@ IMAGE_NAMESPACE ?= openfire-build
 CLUSTER_IMAGE ?= $(REGISTRY_HOST)/$(IMAGE_NAMESPACE)/$(IMAGE_NAME):$(IMAGE_TAG)
 OPENFIRE_NAMESPACE ?= openfire
 RELEASE_NAME ?= openfire
+POSTGRES_NAMESPACE ?= postgres-test
+POSTGRES_RELEASE ?= postgres-test
+POSTGRES_USER ?= openfire
+POSTGRES_PASSWORD ?= openfire
+POSTGRES_DATABASE ?= openfire
 
-.PHONY: download-plugins download-openfire prepare build push-local-image clean clean-local deploy-local deploy-local-clean
+.PHONY: download-plugins download-openfire prepare build push-local-image clean clean-local deploy-local deploy-local-clean destroy-local-all postgres-local-setup openfire-conf-postgres deploy-local-postgres
 
 download-plugins:
 	@sh ./scripts/download-plugins.sh plugins.txt plugins
@@ -74,3 +79,30 @@ clean-local:
 		--ignore-not-found=true
 
 deploy-local-clean: clean-local deploy-local
+
+destroy-local-all:
+	@oc delete namespace "$(OPENFIRE_NAMESPACE)" --ignore-not-found=true
+	@oc delete namespace "$(POSTGRES_NAMESPACE)" --ignore-not-found=true
+
+postgres-local-setup:
+	@helm repo add bitnami https://charts.bitnami.com/bitnami >/dev/null 2>&1 || true
+	@helm repo update >/dev/null
+	@helm upgrade --install "$(POSTGRES_RELEASE)" bitnami/postgresql \
+		--namespace "$(POSTGRES_NAMESPACE)" \
+		--create-namespace \
+		--set auth.username="$(POSTGRES_USER)" \
+		--set auth.password="$(POSTGRES_PASSWORD)" \
+		--set auth.database="$(POSTGRES_DATABASE)" \
+		--set primary.persistence.size=5Gi
+
+wait-postgres-ready:
+	@oc rollout status statefulset/"$(POSTGRES_RELEASE)"-postgresql -n "$(POSTGRES_NAMESPACE)" --timeout=300s
+
+openfire-conf-postgres:
+	@oc create secret generic openfire-conf -n "$(OPENFIRE_NAMESPACE)" \
+		--from-file=openfire.xml=./conf/openfire-postgres.xml \
+		--from-file=security.xml=./conf/security.xml \
+		--dry-run=client -o yaml | oc apply -f -
+	@oc rollout restart deployment/"$(RELEASE_NAME)"-openfire -n "$(OPENFIRE_NAMESPACE)"
+
+deploy-local-postgres: postgres-local-setup wait-postgres-ready deploy-local openfire-conf-postgres

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jive>
+  <adminConsole>
+    <port>9090</port>
+    <securePort>9091</securePort>
+  </adminConsole>
+
+  <connectionProvider>
+    <className>org.jivesoftware.database.DefaultConnectionProvider</className>
+  </connectionProvider>
+
+  <database>
+    <defaultProvider>
+      <driver>org.postgresql.Driver</driver>
+      <serverURL>jdbc:postgresql://postgres-test-postgresql.postgres-test.svc.cluster.local:5432/openfire</serverURL>
+      <username>openfire</username>
+      <password>openfire</password>
+      <minConnections>5</minConnections>
+      <maxConnections>25</maxConnections>
+      <connectionTimeout>1.0</connectionTimeout>
+    </defaultProvider>
+  </database>
+
+  <rss>
+    <enabled>false</enabled>
+  </rss>
+  <update>
+    <service-enabled>false</service-enabled>
+    <notify-admins>false</notify-admins>
+  </update>
+
+  <locale>en</locale>
+  <fqdn>openfire-openfire.openfire.svc.cluster.local</fqdn>
+
+  <setup>true</setup>
+</jive>

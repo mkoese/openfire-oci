@@ -136,7 +136,32 @@ make clean-local
 
 # Reset Openfire PVCs and deploy clean
 make deploy-local-clean
+
+# Destroy Openfire + Postgres namespaces (destructive)
+make destroy-local-all
+
+# Deploy Openfire with PostgreSQL (creates postgres via Helm, deploys Openfire, applies postgres openfire-conf)
+make deploy-local-postgres
+
+# Re-apply PostgreSQL openfire-conf and restart Openfire (if deploy-local was run afterwards)
+make openfire-conf-postgres
 ```
+
+#### Deployment goal chains
+
+Use these `make` chains for predictable local deployments:
+
+```bash
+# Openfire with embedded DB (no Postgres)
+make push-local-image && make deploy-local-clean
+
+# Openfire with PostgreSQL
+make destroy-local-all && make push-local-image && make deploy-local-postgres
+```
+
+Notes:
+- `make deploy-local` applies the chart default `openfire-conf` (embedded DB).
+- For PostgreSQL deployments, use `make deploy-local-postgres` (or run `make openfire-conf-postgres` after `make deploy-local`).
 
 Optionally pre-pull base images to speed up local builds:
 
