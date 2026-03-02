@@ -8,7 +8,7 @@ FROM registry.access.redhat.com/ubi9/ubi:9.7 AS builder
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-ARG OPENFIRE_VERSION=5.0.3
+ARG OPENFIRE_VERSION=4.8.2
 ARG OPENFIRE_DOWNLOAD_BASE_URL=https://github.com/igniterealtime/Openfire/releases/download
 
 # Stage config files into /tmp for the single RUN below
@@ -46,7 +46,7 @@ RUN --mount=type=bind,target=/src \
 # (the COPY below). All other instructions are metadata-only.
 FROM registry.access.redhat.com/ubi9/openjdk-17-runtime:1.24
 
-ARG OPENFIRE_VERSION=5.0.3
+ARG OPENFIRE_VERSION=4.8.2
 
 # OCI image metadata
 LABEL org.opencontainers.image.title="Openfire XMPP Server" \

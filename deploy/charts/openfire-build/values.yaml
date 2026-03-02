@@ -12,7 +12,7 @@ image:
   # tag defaults to openfire.version if not set
 
 openfire:
-  version: "5.0.3"
+  version: "4.8.2"
   downloadBaseUrl: "https://github.com/igniterealtime/Openfire/releases/download"
 
 workspace:
