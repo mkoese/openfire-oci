@@ -18,8 +18,10 @@ POSTGRES_RELEASE ?= postgres-test
 POSTGRES_USER ?= openfire
 POSTGRES_PASSWORD ?= openfire
 POSTGRES_DATABASE ?= openfire
+PORT_FORWARD_PID_FILE ?= .port-forward-admin.pid
+PORT_FORWARD_LOG_FILE ?= .port-forward-admin.log
 
-.PHONY: download-plugins download-openfire prepare build push-local-image clean clean-local deploy-local deploy-local-clean destroy-local-all postgres-local-setup openfire-conf-postgres deploy-local-postgres
+.PHONY: download-plugins download-openfire prepare build push-local-image clean clean-local deploy-local deploy-local-clean destroy-local-all postgres-local-setup openfire-conf-postgres deploy-local-postgres port-forward-admin
 
 download-plugins:
 	@sh ./scripts/download-plugins.sh plugins.txt plugins
@@ -106,3 +108,14 @@ openfire-conf-postgres:
 	@oc rollout restart deployment/"$(RELEASE_NAME)"-openfire -n "$(OPENFIRE_NAMESPACE)"
 
 deploy-local-postgres: postgres-local-setup wait-postgres-ready deploy-local openfire-conf-postgres
+
+port-forward-admin:
+	@PID="$$(ps -eo pid=,args= | awk '/oc port-forward -n $(OPENFIRE_NAMESPACE) svc\/$(RELEASE_NAME)-openfire 9090:9090$$/ {print $$1; exit}')"; \
+	if [ -n "$$PID" ] && kill -0 "$$PID" 2>/dev/null; then \
+		echo "$$PID" > "$(PORT_FORWARD_PID_FILE)"; \
+		echo "Admin port-forward already running (pid=$$PID)"; \
+	else \
+		nohup oc port-forward -n "$(OPENFIRE_NAMESPACE)" svc/"$(RELEASE_NAME)"-openfire 9090:9090 >"$(PORT_FORWARD_LOG_FILE)" 2>&1 & \
+		echo $$! > "$(PORT_FORWARD_PID_FILE)"; \
+		echo "Started admin port-forward in background (pid=$$(cat "$(PORT_FORWARD_PID_FILE)"), log=$(PORT_FORWARD_LOG_FILE))"; \
+	fi

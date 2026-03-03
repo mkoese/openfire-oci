@@ -25,6 +25,7 @@ Desktop.ini
 # Java
 *.class
 *.log
+*.pid
 hs_err_pid*
 
 # Logs
