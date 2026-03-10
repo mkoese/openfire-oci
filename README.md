@@ -201,13 +201,21 @@ sudo firewall-cmd --reload
 ### OpenShift / Kubernetes
 
 ```bash
+# Apply openfire namespace and deployment resources
+helm template openfire ./deploy/charts/openfire \
+  -f ./deploy/charts/openfire/values-openshift.yaml | oc apply -f -
+
 # Allow openfire namespace to pull images from openfire-build
 oc policy add-role-to-group system:image-puller \
   system:serviceaccounts:openfire -n openfire-build
 
-# Apply openfire namespace and deployment resources
-helm template openfire ./deploy/charts/openfire \
-  -f ./deploy/charts/openfire/values-openshift.yaml | oc apply -f -
+# If pulling from an external registry (e.g. Quay.io), create and link a pull secret
+oc create secret docker-registry openfire-pull-secret \
+  --docker-server=quay.io \
+  --docker-username=<user> \
+  --docker-password=<token> \
+  -n openfire
+oc secrets link openfire-openfire openfire-pull-secret --for=pull -n openfire
 ```
 
 ---
