@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jive>
+  <adminConsole>
+    <port>9090</port>
+    <securePort>9091</securePort>
+  </adminConsole>
+
+  <!-- Embedded database (development only) -->
+  <connectionProvider>
+    <className>org.jivesoftware.database.EmbeddedConnectionProvider</className>
+  </connectionProvider>
+
+  <!-- Migrated to database on first boot. Disables outbound calls to igniterealtime.org
+       (blog feed, update checks). Required in airgapped/restricted-egress environments. -->
+  <rss>
+    <enabled>false</enabled>
+  </rss>
+  <update>
+    <service>
+      <enabled>false</enabled>
+    </service>
+    <notify>
+      <admins>false</admins>
+    </notify>
+  </update>
+
+  <locale>en</locale>
+  <!-- For Kubernetes, the secret.yaml template overrides this with the service FQDN -->
+  <fqdn>localhost</fqdn>
+
+  <!-- No <autosetup> and no <setup>true</setup>: first boot serves the setup
+       wizard on 9090, where the admin password is chosen. The published image
+       must not ship known credentials. For unattended first boot, mount a
+       config with an <autosetup> block (see docs/local-dev.md, or the gitops
+       chart which injects credentials from Kubernetes secrets). -->
+</jive>

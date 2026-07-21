@@ -1,0 +1,1 @@
+userstatus|https://igniterealtime.org/projects/openfire/plugins/1.3.0/userstatus.jar|49c535b8edd67a40e1c2ff5fc0c791f7c58ea4722ffd9c7c896457914c890680

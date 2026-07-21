@@ -1,0 +1,133 @@
+# Openfire OCI - GitLab CI/CD Pipeline
+#
+# Builds and pushes the Openfire container image to Quay.io.
+#
+# Required CI/CD variables (Settings > CI/CD > Variables):
+#   QUAY_USERNAME  - Quay.io robot account or username
+#   QUAY_PASSWORD  - Quay.io robot account token or password (masked)
+#
+# Triggers: push to default branch, version tags (v*), manual (Run pipeline)
+# Tagging follows the UBI model (tags for humans, digests for clusters):
+#   <version>-<iid>-<jobid>  unique per build -- write-only, keeps the digest
+#                            referenced (Quay garbage-collects untagged digests)
+#   <version> (e.g. 5.1.1)   ROLLS to the newest build of that version
+#   main                     ROLLS on branch builds -- dev follows it
+# Deployments pin the DIGEST the build job prints (openfire-gitops
+# envs/*.yaml image.digest); rolling a tag can never change what prod runs.
+
+variables:
+  OPENFIRE_VERSION: "5.1.1"
+  OPENFIRE_SHA256: "d930be11c93c995ee0a045118d0539629bd27d983ad99e6f174ded6453612a0d"
+  OPENFIRE_DOWNLOAD_BASE_URL: "https://github.com/igniterealtime/Openfire/releases/download"
+  REPOSITORY: "quay.io"
+  IMAGE_NAME: "mikailkose/openfire-oci"
+
+build-and-push:
+  image:
+    name: registry.access.redhat.com/ubi9/buildah:9.8@sha256:ed9497f3dcbf63e4f05524b313213cd1431bf643e1c8ecfc9fd03f042d87cbb3
+    entrypoint: [""]
+  variables:
+    STORAGE_DRIVER: vfs
+    # Required on unprivileged shared runners: buildah cannot create user
+    # namespaces there, chroot isolation works without privileges.
+    BUILDAH_ISOLATION: chroot
+  script:
+    - |
+      # Fail fast with actionable messages before downloading ~400MB
+      : "${QUAY_USERNAME:?QUAY_USERNAME is not set - add it under Settings > CI/CD > Variables}"
+      : "${QUAY_PASSWORD:?QUAY_PASSWORD is not set - add it under Settings > CI/CD > Variables (masked)}"
+    - |
+      # set -euo pipefail: GitLab runs a `- |` block as one script and checks
+      # only its final exit code -- without this a sha256sum -c failure on a
+      # non-last artifact in the loop would be masked and let tampered bytes through.
+      set -euo pipefail
+      mkdir -p plugins
+      while IFS='|' read -r name url sha256; do
+        [ -z "$name" ] && continue
+        echo "Downloading plugin: $name from $url"
+        curl -fsSL -o "plugins/${name}.jar" "$url"
+        echo "${sha256}  plugins/${name}.jar" | sha256sum -c -
+      done < plugins.txt
+    - |
+      set -euo pipefail
+      mkdir -p lib
+      while IFS='|' read -r name url sha256; do
+        [ -z "$name" ] && continue
+        echo "Downloading lib: $name from $url"
+        curl -fsSL -o "lib/${name}.jar" "$url"
+        echo "${sha256}  lib/${name}.jar" | sha256sum -c -
+      done < lib.txt
+    - |
+      set -euo pipefail
+      VERSION_FILE=$(echo "${OPENFIRE_VERSION}" | tr '.' '_')
+      echo "Downloading Openfire ${OPENFIRE_VERSION}"
+      curl -fsSL -o "openfire_${VERSION_FILE}.tar.gz" \
+        "${OPENFIRE_DOWNLOAD_BASE_URL}/v${OPENFIRE_VERSION}/openfire_${VERSION_FILE}.tar.gz"
+      # Tarball checksum is verified inside the build (OPENFIRE_SHA256 build arg)
+    - |
+      set -euo pipefail
+      # Guard: a version tag must match the Containerfile inputs.
+      if [ -n "${CI_COMMIT_TAG:-}" ] && [ "${CI_COMMIT_TAG#v}" != "${OPENFIRE_VERSION}" ]; then
+        echo "ERROR: git tag ${CI_COMMIT_TAG} does not match OPENFIRE_VERSION ${OPENFIRE_VERSION} -- bump the variable first."
+        exit 1
+      fi
+      # pipeline iid + job id: unique even across job retries
+      IMAGE_TAG="${OPENFIRE_VERSION}-${CI_PIPELINE_IID}-${CI_JOB_ID}"
+      echo "IMAGE_TAG=${IMAGE_TAG}" > build.env
+      echo "${QUAY_PASSWORD}" | buildah login -u "${QUAY_USERNAME}" --password-stdin "${REPOSITORY}"
+      # --format docker: OCI format silently drops HEALTHCHECK
+      buildah build --format docker --platform linux/amd64 \
+        --build-arg OPENFIRE_VERSION="${OPENFIRE_VERSION}" \
+        --build-arg OPENFIRE_SHA256="${OPENFIRE_SHA256}" \
+        -t "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}" .
+      buildah push --digestfile /tmp/digest "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}"
+      # Rolling tags (UBI model): '<version>' -> newest build of that version;
+      # 'main' -> newest branch build (dev follows it). Digests stay pinned in
+      # openfire-gitops, so rolling tags never change prod.
+      buildah tag "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}" "${REPOSITORY}/${IMAGE_NAME}:${OPENFIRE_VERSION}"
+      buildah push "${REPOSITORY}/${IMAGE_NAME}:${OPENFIRE_VERSION}"
+      if [ -z "${CI_COMMIT_TAG:-}" ]; then
+        buildah tag "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}" "${REPOSITORY}/${IMAGE_NAME}:main"
+        buildah push "${REPOSITORY}/${IMAGE_NAME}:main"
+      fi
+      echo "Pushed ${IMAGE_TAG} -- pin in openfire-gitops envs/*.yaml as:"
+      echo "  image.digest: $(cat /tmp/digest)"
+  artifacts:
+    reports:
+      dotenv: build.env
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG =~ /^v/
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+# Vulnerability gate: scans the pushed image, fails the pipeline on fixable
+# CRITICAL/HIGH findings (--ignore-unfixed: CVEs without a released Red Hat
+# fix are not actionable here). Temporary exceptions live in .trivyignore with
+# a dated comment. Digest-pinned container (the trivy-action tag hijack of
+# 2026-03 is exactly why mutable tags are not trusted here). Quay's built-in
+# Clair scan stays as an independent second opinion in the registry UI.
+scan-image:
+  needs: [build-and-push]
+  # Shared runners occasionally truncate layer downloads ("unexpected EOF"
+  # during analysis) -- retry transient infra failures, real findings still
+  # fail all attempts.
+  retry:
+    max: 2
+    when:
+      - script_failure
+      - runner_system_failure
+  image:
+    name: docker.io/aquasec/trivy:0.72.0@sha256:cffe3f5161a47a6823fbd23d985795b3ed72a4c806da4c4df16266c02accdd6f
+    entrypoint: [""]
+  script:
+    - |
+      set -euo pipefail
+      # IMAGE_TAG comes from the build job's dotenv artifact -- single source
+      # of truth, no recomputation drift.
+      trivy image --exit-code 1 --severity CRITICAL,HIGH \
+        --ignore-unfixed --ignorefile .trivyignore \
+        "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG =~ /^v/
+    - if: $CI_PIPELINE_SOURCE == "web"

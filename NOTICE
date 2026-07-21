@@ -1,0 +1,18 @@
+Openfire OCI Container Image
+Copyright 2026 Mikail Koese
+
+This product includes the following third-party software:
+
+Openfire XMPP Server
+  Copyright 2004-2025 Ignite Realtime Foundation
+  Licensed under the Apache License, Version 2.0
+  https://github.com/igniterealtime/Openfire
+
+Red Hat Universal Base Image 9 (UBI9)
+  Copyright Red Hat, Inc.
+  Subject to the Red Hat Universal Base Image EULA
+  https://www.redhat.com/licenses/EULA_Red_Hat_Universal_Base_Image_English_20190422.pdf
+
+Red Hat OpenJDK 17 Runtime
+  Licensed under the GNU General Public License, version 2, with the Classpath Exception
+  https://openjdk.org/legal/gplv2+ce.html

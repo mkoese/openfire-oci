@@ -1,0 +1,33 @@
+# Bundled JARs excluded from the image -- one shell glob per line, matched in
+# /opt/openfire/lib/ and removed at build time (BEFORE lib.txt JARs are added,
+# so pinned JARs can never be caught by a pattern here).
+#
+# PostgreSQL-only deployment: Openfire bundles JDBC drivers for every database
+# it supports; unused drivers are dead classpath weight and CVE surface (the
+# bundled mssql-jdbc shipped a known HIGH). The embedded HSQLDB
+# (hsqldb-*.jar) stays -- local dev and first-boot embedded mode use it.
+
+# Microsoft SQL Server (+ legacy jTDS driver)
+mssql-jdbc-*.jar
+jtds-*.jar
+
+# MySQL / MariaDB
+mysql-connector-*.jar
+mariadb-java-client-*.jar
+
+# Oracle (driver + companion jars)
+ojdbc*.jar
+ons-*.jar
+oraclepki-*.jar
+orai18n-*.jar
+rsi-*.jar
+simplefan-*.jar
+ucp-*.jar
+xdb-*.jar
+
+# Firebird
+jaybird-*.jar
+
+# Openfire's bundled PostgreSQL driver -- lib.txt pins the current one
+# (postgresql.jar); removing this avoids two driver versions on the classpath
+postgresql-*.jar

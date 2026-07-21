@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Container logging config for Openfire (replaces the stock lib/log4j2.xml).
+  All output goes to stdout for the container log driver.
+
+  Levels are driven by environment variables so they can be changed from the
+  OpenShift/Kubernetes UI (Deployment > Environment) with no image rebuild and
+  no file edit. Changing an env var rolls a new pod that starts at the new
+  level. Unset => the default in each ${env:NAME:-default} below.
+
+    OPENFIRE_LOG_LEVEL        root level                       (default info)
+    OPENFIRE_LOG_LEVEL_AUTH   com.mkoese.openfire.auth         (default info)
+    OPENFIRE_LOG_LEVEL_LDAP   org.jivesoftware.openfire.ldap   (default info)
+    OPENFIRE_LOG_LEVEL_SASL   org.jivesoftware.openfire.net    (default info)
+
+  Values are case-insensitive: off, error, warn, info, debug, trace, all.
+  (Config-level ${env:...} lookups are NOT affected by the Log4Shell
+  %msg{nolookups} mitigation, which only applies to message content.)
+
+  monitorInterval="30": the file is re-read every 30s, so a mounted-override
+  edit also applies without a restart. See docs/logging.md.
+-->
+<Configuration status="WARN" monitorInterval="30">
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy.MM.dd HH:mm:ss.SSS} %-5p [%t]: %c - %msg{nolookups}%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.eclipse.jetty" level="warn"/>
+
+        <!-- AD-gated auth provider (openfire-authprovider). Never logs
+             passwords or credential material. -->
+        <Logger name="com.mkoese.openfire.auth" level="${env:OPENFIRE_LOG_LEVEL_AUTH:-info}"/>
+        <!-- Directory + SASL/TLS layers, handy when debugging LDAP or GSSAPI -->
+        <Logger name="org.jivesoftware.openfire.ldap" level="${env:OPENFIRE_LOG_LEVEL_LDAP:-info}"/>
+        <Logger name="org.jivesoftware.openfire.net" level="${env:OPENFIRE_LOG_LEVEL_SASL:-info}"/>
+
+        <Root level="${env:OPENFIRE_LOG_LEVEL:-info}">
+            <AppenderRef ref="console"/>
+        </Root>
+    </Loggers>
+</Configuration>

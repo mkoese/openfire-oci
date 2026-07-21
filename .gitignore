@@ -1,0 +1,39 @@
+# Build artifacts
+openfire_*.tar.gz
+*.tar
+
+# Plugin JARs (download before building)
+plugins/*.jar
+
+# Server-classpath JARs (download before building, see lib.txt)
+lib/*.jar
+
+# Secrets (never commit real secrets)
+secret*
+*.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Java
+*.class
+*.log
+hs_err_pid*
+
+# Logs
+logs/
+
+# Temp files and folders
+tmp/
+temp/
+*.tmp
+*.bak
+*~

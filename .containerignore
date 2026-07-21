@@ -1,0 +1,44 @@
+# Build artifacts
+*.tar
+
+# Secrets
+secret*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Java
+*.class
+*.log
+hs_err_pid*
+
+# Logs
+logs/
+
+# Temp files and folders
+tmp/
+temp/
+*.tmp
+*.bak
+*~
+
+# Git
+.git/
+.gitignore
+.containerignore
+
+# Documentation
+README.md
+LICENSE
+TODO.md
+
+plugins/.gitkeep
+lib/.gitkeep

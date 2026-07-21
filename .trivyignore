@@ -1,0 +1,8 @@
+# Fixable CVEs accepted temporarily: fix released by Red Hat but not yet
+# rolled into the pinned ubi9/openjdk-17-runtime base image.
+# Remove entries with the next base-digest bump. Last review: 2026-07-21.
+
+# python3 / python3-libs -- fixed in 3.9.25-7.el9_8.2
+CVE-2026-15308
+# glib2 -- fixed in 2.68.4-19.el9_8.2
+CVE-2026-58016

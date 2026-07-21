@@ -1,0 +1,111 @@
+# Openfire OCI - GitHub Actions Pipeline
+#
+# Builds and pushes the Openfire container image to Quay.io.
+#
+# Required repository secrets (Settings > Secrets and variables > Actions):
+#   QUAY_USERNAME  - Quay.io robot account or username
+#   QUAY_PASSWORD  - Quay.io robot account token or password
+#
+# Triggers: push to default branch, version tags (v*), manual (workflow_dispatch)
+# Image tag: git tag (leading "v" stripped, must equal OPENFIRE_VERSION) is
+# the release tag; every other build (main, dispatch, re-runs) pushes a unique
+# OPENFIRE_VERSION-<run>.<attempt> tag -- released tags are never overwritten.
+# Deploy a rebuild by bumping image.tag in openfire-gitops.
+
+name: Build and Push
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  OPENFIRE_VERSION: "5.1.1"
+  OPENFIRE_SHA256: "d930be11c93c995ee0a045118d0539629bd27d983ad99e6f174ded6453612a0d"
+  OPENFIRE_DOWNLOAD_BASE_URL: "https://github.com/igniterealtime/Openfire/releases/download"
+  REPOSITORY: "quay.io"
+  IMAGE_NAME: "mikailkose/openfire-oci"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    environment: quay
+    env:
+      GIT_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: download-plugins
+        run: |
+          mkdir -p plugins
+          while IFS='|' read -r name url sha256; do
+            [ -z "$name" ] && continue
+            echo "Downloading plugin: $name from $url"
+            curl -fsSL -o "plugins/${name}.jar" "$url"
+            echo "${sha256}  plugins/${name}.jar" | sha256sum -c -
+          done < plugins.txt
+
+      - name: download-libs
+        run: |
+          mkdir -p lib
+          while IFS='|' read -r name url sha256; do
+            [ -z "$name" ] && continue
+            echo "Downloading lib: $name from $url"
+            curl -fsSL -o "lib/${name}.jar" "$url"
+            echo "${sha256}  lib/${name}.jar" | sha256sum -c -
+          done < lib.txt
+
+      - name: download-openfire
+        run: |
+          VERSION_FILE=$(echo "${OPENFIRE_VERSION}" | tr '.' '_')
+          echo "Downloading Openfire ${OPENFIRE_VERSION}"
+          curl -fsSL -o "openfire_${VERSION_FILE}.tar.gz" \
+            "${OPENFIRE_DOWNLOAD_BASE_URL}/v${OPENFIRE_VERSION}/openfire_${VERSION_FILE}.tar.gz"
+          # Tarball checksum is verified inside the build (OPENFIRE_SHA256 build arg)
+
+      - name: build-image
+        env:
+          QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+        run: |
+          # Release tag only from a pushed git tag; must match OPENFIRE_VERSION.
+          # Everything else (main, dispatch, re-runs) gets run.attempt-unique tags.
+          if [ -n "${GIT_TAG}" ]; then
+            if [ "${GIT_TAG#v}" != "${OPENFIRE_VERSION}" ]; then
+              echo "ERROR: git tag ${GIT_TAG} does not match OPENFIRE_VERSION ${OPENFIRE_VERSION} -- bump the variable first."
+              exit 1
+            fi
+            IMAGE_TAG="${GIT_TAG#v}"
+          else
+            IMAGE_TAG="${OPENFIRE_VERSION}-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
+          fi
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> "$GITHUB_ENV"
+          echo "${QUAY_PASSWORD}" | buildah login -u "${QUAY_USERNAME}" --password-stdin "${REPOSITORY}"
+          # --format docker: OCI format silently drops HEALTHCHECK
+          buildah build --format docker --platform linux/amd64 \
+            --build-arg OPENFIRE_VERSION="${OPENFIRE_VERSION}" \
+            --build-arg OPENFIRE_SHA256="${OPENFIRE_SHA256}" \
+            -t "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}" .
+          buildah push "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}"
+
+      # Vulnerability gate: scans the pushed image, fails the workflow on
+      # fixable CRITICAL/HIGH findings (--ignore-unfixed: CVEs without a
+      # released Red Hat fix are not actionable here; temporary exceptions in
+      # .trivyignore). Runs the trivy container digest-pinned instead of
+      # trivy-action (whose tags were hijacked in the 2026-03 supply chain
+      # attack) -- mutable tags are not trusted here. Quay's built-in Clair
+      # scan stays as an independent second opinion in the registry UI.
+      - name: scan-image
+        run: |
+          # IMAGE_TAG exported by build-image via GITHUB_ENV -- single source of truth
+          # Workspace mounted so trivy can read .trivyignore
+          docker run --rm -v "$PWD:/repo" -w /repo \
+            docker.io/aquasec/trivy:0.72.0@sha256:cffe3f5161a47a6823fbd23d985795b3ed72a4c806da4c4df16266c02accdd6f \
+            image --exit-code 1 --severity CRITICAL,HIGH \
+            --ignore-unfixed --ignorefile .trivyignore \
+            "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}"
