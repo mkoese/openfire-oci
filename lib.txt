@@ -1,2 +1,2 @@
 postgresql|https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.13/postgresql-42.7.13.jar|6e0e4cc2d8cae902084f8a2b18728b073a6fd9d1f87c9d8bff8f298c18185b93
-openfire-authprovider|https://gitlab.com/api/v4/projects/mkoese%2Fopenfire-authprovider/packages/generic/openfire-authprovider/v0.2.0/openfire-authprovider-0.2.0.jar|0c5986783758e0cee5789a96a0fc5528a32a9d058213a3cef9e20e6730e9ae16
+openfire-authprovider|https://gitlab.com/api/v4/projects/mkoese%2Fopenfire-authprovider/packages/generic/openfire-authprovider/v0.2.0/openfire-authprovider-0.2.0.jar|b31e4a441193da16e245d883d15cc4310d9575b0ad588307af7bb3ebc599070c
