@@ -21,8 +21,8 @@ Assembles a ready-to-run `/opt/openfire` tree:
    (logs to stdout) and drop in the default `conf/openfire.xml`.
 4. **Overlay plugins/libs** — copy any JARs staged in `plugins/` and `lib/`
    (see [Pinned inputs](#pinned-inputs)).
-5. **Pre-create writable dirs** — `embedded-db/` and `logs/` are made here so the
-   later `COPY --chmod` grants them group-0 write (see
+5. **Pre-create writable dirs** — `embedded-db/` and `logs/` are made here so
+   the builder's `chmod g+w` covers them before the runtime COPY (see
    [security › arbitrary UID](security.md#runs-as-an-arbitrary-non-root-uid)).
 
 All of the above is a **single `RUN`** — one layer for the whole assembly step,
@@ -30,15 +30,18 @@ and `/tmp` is cleaned in the same layer so nothing leaks into it.
 
 ### Stage 2 — runtime (`ubi9/openjdk-17-runtime:1.24`)
 
-Almost pure metadata on top of the base. The **only filesystem layer added** is
-one `COPY --from=builder`:
+Almost pure metadata on top of the base: a tiny `RUN mkdir` layer (home dir
+with group-write for the arbitrary UID) and one `COPY --from=builder`:
 
 ```dockerfile
-COPY --from=builder --chown=1001:0 --chmod=775 /opt/openfire/ ${OPENFIRE_HOME}/
+COPY --from=builder --chown=1001:0 /opt/openfire/ ${OPENFIRE_HOME}/
 ```
 
-Everything else — `LABEL`, `ENV`, `VOLUME`, `EXPOSE`, `HEALTHCHECK`, `USER`,
-`WORKDIR`, `ENTRYPOINT` — is metadata, so the runtime image is base + one layer.
+No `--chmod`: file modes come from the builder stage — writable dirs are
+group-writable, application code (`lib/`, `bin/`) read-only. Everything else —
+`LABEL`, `ENV`, `EXPOSE`, `HEALTHCHECK`, `USER`, `WORKDIR`, `ENTRYPOINT` — is
+metadata, so the runtime image is base + two small layers (no `VOLUME`s, on
+purpose).
 
 ## Pinned inputs
 
@@ -97,8 +100,8 @@ podman build --platform linux/amd64 \
 
 ## 2. GitLab CI (with internet)
 
-[`.gitlab-ci.yml`](../.gitlab-ci.yml) runs on push to the default branch, any
-tag, or a manual run: downloads + sha256-verifies plugins/libs, `buildah build`
+[`.gitlab-ci.yml`](../.gitlab-ci.yml) runs on push to the default branch, version
+tags (`v*`), or a manual run: downloads + sha256-verifies plugins/libs, `buildah build`
 (`--format docker` so `HEALTHCHECK` survives — the tarball checksum is verified
 *inside* the build via `OPENFIRE_SHA256`), pushes to the registry, then a
 `scan-image` job (digest-pinned trivy, `--ignore-unfixed` + [`.trivyignore`](../.trivyignore))
@@ -115,8 +118,8 @@ the digest referenced, Quay garbage-collects untagged digests) and **rolls**
 `main` (dev follows it). Deployments pin the **digest** the build job prints
 (`image.digest` in openfire-gitops `envs/*.yaml`) — rolling a tag can never
 change what prod runs. A GitHub Actions mirror
-(`.github/workflows/build.yml`) pushes its own unique tags against a `quay`
-environment holding the two secrets.
+(`.github/workflows/build.yml`) pushes its own tags (unique per run, plain
+`5.1.1` on version tags) against a `quay` environment holding the two secrets.
 
 ## 3. Airgapped GitLab (self-hosted, no internet)
 

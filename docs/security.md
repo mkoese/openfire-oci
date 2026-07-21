@@ -15,9 +15,11 @@ is **not** the file owner. That imposes two rules, both satisfied here:
   `/etc/passwd`, so an arbitrary UID starts fine.
 - **Everything Openfire writes is group-0 writable.** `/opt/openfire` is created
   `chown 1001:0 chmod 775`, and the tree is copied with
-  `COPY --chown=1001:0 --chmod=775`. The `embedded-db/` and `logs/` directories
+  `COPY --chown=1001:0` — modes come from the builder's least-privilege
+  `chmod` (group-write only on `conf`, `embedded-db`, `logs`, `plugins`,
+  `resources/security`; `lib/`/`bin/` read-only). The `embedded-db/` and `logs/` directories
   are pre-created in the builder stage so they inherit that mode too — otherwise
-  `VOLUME` would auto-create `embedded-db` at `0755` (owner-only write) and the
+  the runtime COPY would otherwise leave `embedded-db` owner-only and the
   server would `CrashLoopBackOff` under a random UID.
 
 Everything the server writes stays under `/opt/openfire` (config, embedded DB,
@@ -29,7 +31,7 @@ gitops chart).
 
 - Final stage runs as **`USER 1001`**, never root.
 - **Multi-stage build** — the builder (with `tar`, shell scripting) is discarded;
-  the runtime is the minimal `openjdk-17-runtime` base plus one application layer.
+  the runtime is the minimal `openjdk-17-runtime` base plus two small layers.
 - The bundled JRE and documentation are **stripped**, shrinking attack surface.
 - No SUID/SGID binaries are added.
 
@@ -70,7 +72,7 @@ set via `ENV`.
 
 Both pipelines end with a **trivy gate** that fails the build on **fixable**
 CRITICAL/HIGH CVEs in the pushed image (`--ignore-unfixed`: CVEs without a
-released Red Hat fix are reported but not blocking — a rebuild cannot help).
+released Red Hat fix are excluded from the gate — a rebuild cannot help).
 Temporary exceptions live in [`.trivyignore`](../.trivyignore) with a dated
 comment (fix released, pinned base not yet rebuilt) — the file must shrink to
 empty with every base-digest bump. The scanner runs as a **digest-pinned

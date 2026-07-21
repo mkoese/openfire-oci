@@ -7,10 +7,11 @@
 #   QUAY_PASSWORD  - Quay.io robot account token or password
 #
 # Triggers: push to default branch, version tags (v*), manual (workflow_dispatch)
-# Image tag: git tag (leading "v" stripped, must equal OPENFIRE_VERSION) is
-# the release tag; every other build (main, dispatch, re-runs) pushes a unique
-# OPENFIRE_VERSION-<run>.<attempt> tag -- released tags are never overwritten.
-# Deploy a rebuild by bumping image.tag in openfire-gitops.
+# Backup mirror of the GitLab pipeline. GitLab is the tag authority (rolling
+# '5.1.1'/'main' per the UBI model); this workflow pushes a unique
+# OPENFIRE_VERSION-<run>.<attempt> tag per build (plain '<version>' on git
+# tags) and never touches 'main'. Deployments pin the image DIGEST in
+# openfire-gitops envs/*.yaml -- tags are for humans.
 
 name: Build and Push
 
@@ -44,7 +45,7 @@ jobs:
         run: |
           mkdir -p plugins
           while IFS='|' read -r name url sha256; do
-            [ -z "$name" ] && continue
+            case "$name" in ''|\#*) continue ;; esac
             echo "Downloading plugin: $name from $url"
             curl -fsSL -o "plugins/${name}.jar" "$url"
             echo "${sha256}  plugins/${name}.jar" | sha256sum -c -
@@ -54,7 +55,7 @@ jobs:
         run: |
           mkdir -p lib
           while IFS='|' read -r name url sha256; do
-            [ -z "$name" ] && continue
+            case "$name" in ''|\#*) continue ;; esac
             echo "Downloading lib: $name from $url"
             curl -fsSL -o "lib/${name}.jar" "$url"
             echo "${sha256}  lib/${name}.jar" | sha256sum -c -

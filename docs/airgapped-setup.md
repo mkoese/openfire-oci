@@ -59,7 +59,7 @@ verification.
 
 ## Why airgapping doesn't weaken security
 
-Every build input — base images (explicit tags), Openfire tarball
+Every build input — base images (pinned digests — mirror by digest, tags may have re-rolled), Openfire tarball
 (`OPENFIRE_SHA256`), plugins/libs (`sha256` per line) — is pinned and verified.
 The URL is never trusted, only the bytes. An airgapped mirror is therefore a
 **drop-in with no loss of assurance**. See [security.md](security.md#supply-chain-pinned-inputs).

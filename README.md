@@ -23,7 +23,7 @@ Part of a 3-repo setup:
 | **Openfire** | 5.1.1 |
 | **Java** | OpenJDK 17 |
 | **User** | `1001:0` (OpenShift arbitrary-UID compatible) |
-| **Structure** | 2-stage build → base + **one** application layer |
+| **Structure** | 2-stage build → base + two small layers (perms + app) |
 
 ## How the image is built
 
@@ -34,10 +34,11 @@ shipped image:
   **bind mount**, so the archive is never a layer), strips the bundled JRE and
   docs, overlays the container `log4j2.xml` (logs → stdout), the default
   `openfire.xml`, and any pinned plugins/libs — all in a **single `RUN`**.
-- **Stage 2 — runtime** (`ubi9/openjdk-17-runtime:1.24`): a **single**
-  `COPY --from=builder --chown=1001:0 --chmod=775` of `/opt/openfire`. Everything
-  else (`LABEL`/`ENV`/`VOLUME`/`EXPOSE`/`HEALTHCHECK`/`USER`/`ENTRYPOINT`) is
-  metadata — so the image is base + one filesystem layer.
+- **Stage 2 — runtime** (`ubi9/openjdk-17-runtime:1.24`): a home-dir `RUN`
+  plus a **single** `COPY --from=builder --chown=1001:0` of `/opt/openfire`
+  (file modes come from the builder: app code read-only, data dirs
+  group-writable). Everything else (`LABEL`/`ENV`/`EXPOSE`/`HEALTHCHECK`/
+  `USER`/`ENTRYPOINT`) is metadata — no `VOLUME`s, on purpose.
 
 **Pinned inputs** — build artifacts are declared in two `name|url|sha256` lists,
 verified on every build (content-addressed, so mirrors are safe):

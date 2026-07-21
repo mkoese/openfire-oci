@@ -11,7 +11,7 @@
 #   <version>-<iid>-<jobid>  unique per build -- write-only, keeps the digest
 #                            referenced (Quay garbage-collects untagged digests)
 #   <version> (e.g. 5.1.1)   ROLLS to the newest build of that version
-#   main                     ROLLS on branch builds -- dev follows it
+#   main                     ROLLS on default-branch builds -- dev follows it
 # Deployments pin the DIGEST the build job prints (openfire-gitops
 # envs/*.yaml image.digest); rolling a tag can never change what prod runs.
 
@@ -43,7 +43,7 @@ build-and-push:
       set -euo pipefail
       mkdir -p plugins
       while IFS='|' read -r name url sha256; do
-        [ -z "$name" ] && continue
+        case "$name" in ''|\#*) continue ;; esac
         echo "Downloading plugin: $name from $url"
         curl -fsSL -o "plugins/${name}.jar" "$url"
         echo "${sha256}  plugins/${name}.jar" | sha256sum -c -
@@ -52,7 +52,7 @@ build-and-push:
       set -euo pipefail
       mkdir -p lib
       while IFS='|' read -r name url sha256; do
-        [ -z "$name" ] && continue
+        case "$name" in ''|\#*) continue ;; esac
         echo "Downloading lib: $name from $url"
         curl -fsSL -o "lib/${name}.jar" "$url"
         echo "${sha256}  lib/${name}.jar" | sha256sum -c -
@@ -82,11 +82,16 @@ build-and-push:
         -t "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}" .
       buildah push --digestfile /tmp/digest "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}"
       # Rolling tags (UBI model): '<version>' -> newest build of that version;
-      # 'main' -> newest branch build (dev follows it). Digests stay pinned in
-      # openfire-gitops, so rolling tags never change prod.
-      buildah tag "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}" "${REPOSITORY}/${IMAGE_NAME}:${OPENFIRE_VERSION}"
-      buildah push "${REPOSITORY}/${IMAGE_NAME}:${OPENFIRE_VERSION}"
-      if [ -z "${CI_COMMIT_TAG:-}" ]; then
+      # 'main' -> newest DEFAULT-BRANCH build (dev follows it). Both roll ONLY
+      # from the default branch or a version tag -- a web-triggered run on a
+      # feature branch pushes its unique tag and nothing else, so an
+      # unreviewed branch can never reach dev. Digests stay pinned in
+      # openfire-gitops, so rolling tags never change prod either way.
+      if [ -n "${CI_COMMIT_TAG:-}" ] || [ "${CI_COMMIT_BRANCH:-}" = "${CI_DEFAULT_BRANCH}" ]; then
+        buildah tag "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}" "${REPOSITORY}/${IMAGE_NAME}:${OPENFIRE_VERSION}"
+        buildah push "${REPOSITORY}/${IMAGE_NAME}:${OPENFIRE_VERSION}"
+      fi
+      if [ -z "${CI_COMMIT_TAG:-}" ] && [ "${CI_COMMIT_BRANCH:-}" = "${CI_DEFAULT_BRANCH}" ]; then
         buildah tag "${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}" "${REPOSITORY}/${IMAGE_NAME}:main"
         buildah push "${REPOSITORY}/${IMAGE_NAME}:main"
       fi
